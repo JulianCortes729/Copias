@@ -16,6 +16,7 @@ enum State {
 # and StringName compares by pointer instead of character by character.
 const ACTION_LEFT: StringName = &"move_left"
 const ACTION_RIGHT: StringName = &"move_right"
+const ACTION_JUMP: StringName = &"jump"
 
 @export_group("Ground movement")
 
@@ -27,6 +28,11 @@ const ACTION_RIGHT: StringName = &"move_right"
 
 ## How quickly the player stops once input is released, in pixels per second squared.
 @export var friction: float = 1600.0
+
+@export_group("Jump")
+
+## Upward speed applied the instant a jump starts, in pixels per second.
+@export var jump_velocity: float = 400.0
 
 var _state: State = State.AIR
 
@@ -55,7 +61,12 @@ func _tick_idle(delta: float, direction: float) -> void:
 
 	if not is_on_floor():
 		_transition_to(State.AIR)
-	elif not is_zero_approx(direction):
+		return
+
+	if _try_jump():
+		return
+
+	if not is_zero_approx(direction):
 		_transition_to(State.RUN)
 
 
@@ -64,7 +75,12 @@ func _tick_run(delta: float, direction: float) -> void:
 
 	if not is_on_floor():
 		_transition_to(State.AIR)
-	elif is_zero_approx(direction) and is_zero_approx(velocity.x):
+		return
+
+	if _try_jump():
+		return
+
+	if is_zero_approx(direction) and is_zero_approx(velocity.x):
 		# 📖 Leaving RUN waits for the speed to actually reach zero, not just for the key
 		# release: otherwise the state would lie about the player still sliding.
 		_transition_to(State.IDLE)
@@ -78,6 +94,20 @@ func _tick_air(delta: float, direction: float) -> void:
 
 	if is_on_floor():
 		_transition_to(State.RUN if not is_zero_approx(direction) else State.IDLE)
+
+
+## Starts a jump if the action was pressed this tick. Returns true when it did, so the
+## calling state can stop evaluating its other transitions.
+func _try_jump() -> bool:
+	# 📖 Only called from grounded states, so "on the floor" is already guaranteed here.
+	# Letting AIR call this is what would turn into an accidental double jump.
+	if not Input.is_action_just_pressed(ACTION_JUMP):
+		return false
+
+	# 📖 In Godot's 2D coordinates Y grows downward, so up is negative.
+	velocity.y = -jump_velocity
+	_transition_to(State.AIR)
+	return true
 
 
 ## Moves velocity.x toward the target speed, or toward zero when there is no input.
