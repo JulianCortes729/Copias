@@ -1,0 +1,13 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Exported builds: the playable build belongs on itch.io, never in the repository.
+export/
+builds/
+*.translation
+
+# Local authoring tools and internal design notes, kept out of the public repository.
+CLAUDE.md
+GDD.md
+.claude/

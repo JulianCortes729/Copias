@@ -1,0 +1,37 @@
+# Normalize EOL for all files that Git considers text files.
+* text=auto eol=lf
+
+# --- Git LFS -----------------------------------------------------------------
+# Binaries stay out of git history. Without this, every revision of every asset
+# is stored whole, forever, and the repository never shrinks again.
+
+# Art
+*.png  filter=lfs diff=lfs merge=lfs -text
+*.jpg  filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+*.psd  filter=lfs diff=lfs merge=lfs -text
+*.exr  filter=lfs diff=lfs merge=lfs -text
+
+# Audio
+*.wav  filter=lfs diff=lfs merge=lfs -text
+*.mp3  filter=lfs diff=lfs merge=lfs -text
+*.ogg  filter=lfs diff=lfs merge=lfs -text
+
+# Fonts and video
+*.ttf  filter=lfs diff=lfs merge=lfs -text
+*.otf  filter=lfs diff=lfs merge=lfs -text
+*.mp4  filter=lfs diff=lfs merge=lfs -text
+
+# SVG is text. Keeping it diffable is worth more than the bytes LFS would save.
+*.svg -text
+
+# Scenes, resources and scripts (.tscn, .tres, .gd) are deliberately absent above:
+# they are text, and sending them to LFS would destroy diffing and merging.
+
+# --- Linguist ----------------------------------------------------------------
+# GitHub picks a repository's language by counting bytes, not by importance. A
+# vendored addon can outweigh every line of GDScript here and mislabel the repo.
+
+addons/**      linguist-vendored
+third_party/** linguist-vendored
+docs/**        linguist-documentation
