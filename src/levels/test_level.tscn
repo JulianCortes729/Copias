@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://ch6io8xa6gkuw"]
 
 [ext_resource type="PackedScene" uid="uid://1ti37ijk0yyr" path="res://src/player/player.tscn" id="1_1ky7t"]
+[ext_resource type="Script" uid="uid://dm4dpcampp5i" path="res://src/copy/copy_system.gd" id="2_hdcac"]
+[ext_resource type="PackedScene" uid="uid://dnntbtib5bjj3" path="res://src/copy/player_copy.tscn" id="3_br53r"]
+[ext_resource type="Resource" uid="uid://d1tfpi1qt317m" path="res://src/levels/test_level_data.tres" id="4_br53r"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
 size = Vector2(650, 32)
@@ -15,3 +18,9 @@ shape = SubResource("RectangleShape2D_g4v7s")
 
 [node name="Player" parent="." unique_id=2124162521 instance=ExtResource("1_1ky7t")]
 position = Vector2(477, 427)
+
+[node name="CopySystem" type="Node" parent="." unique_id=1869238433 node_paths=PackedStringArray("player")]
+script = ExtResource("2_hdcac")
+player = NodePath("../Player")
+copy_scene = ExtResource("3_br53r")
+level_data = ExtResource("4_br53r")

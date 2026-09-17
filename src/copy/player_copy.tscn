@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dnntbtib5bjj3"]
+
+[ext_resource type="Script" uid="uid://e1fuklb3mi2k" path="res://src/copy/player_copy.gd" id="1_du3v4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yf5fn"]
+size = Vector2(32, 32)
+
+[node name="PlayerCopy" type="StaticBody2D" unique_id=893820508]
+script = ExtResource("1_du3v4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=56763886]
+shape = SubResource("RectangleShape2D_g4v7s")
+
+[node name="PlayerProbe" type="Area2D" parent="." unique_id=1474934776]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerProbe" unique_id=1652840878]
+shape = SubResource("RectangleShape2D_yf5fn")
