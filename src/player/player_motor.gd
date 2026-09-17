@@ -12,12 +12,6 @@ enum State {
 	AIR, ## No floor contact: rising or falling.
 }
 
-# 📖 StringName (&"") instead of a plain String: input actions are compared every frame,
-# and StringName compares by pointer instead of character by character.
-const ACTION_LEFT: StringName = &"move_left"
-const ACTION_RIGHT: StringName = &"move_right"
-const ACTION_JUMP: StringName = &"jump"
-
 @export_group("Ground movement")
 
 ## Top horizontal speed, in pixels per second.
@@ -40,8 +34,9 @@ var _state: State = State.AIR
 func _physics_process(delta: float) -> void:
 	# 📖 Simulation runs in _physics_process because it is a fixed timestep: same input,
 	# same result, regardless of framerate.
-	# get_axis returns a float in [-1, 1] and allocates nothing.
-	var direction: float = Input.get_axis(ACTION_LEFT, ACTION_RIGHT)
+	# 📖 The motor asks what the player intends, not which key is down. Action names live
+	# in InputReader, so remapping or replaying input never reaches this file.
+	var direction: float = InputReader.get_move_axis()
 
 	match _state:
 		State.IDLE:
@@ -96,12 +91,33 @@ func _tick_air(delta: float, direction: float) -> void:
 		_transition_to(State.RUN if not is_zero_approx(direction) else State.IDLE)
 
 
+## The player's collision shape, so other systems can test whether a destination would
+## fit this player without duplicating its dimensions.
+## Reads the child directly instead of caching in @onready: callers may ask during their
+## own _ready(), and node _ready() order between siblings is not something to rely on.
+func get_collision_shape() -> Shape2D:
+	var collision: CollisionShape2D = $CollisionShape2D
+	return collision.shape
+
+
+## Puts the player standing at the given position and cancels any fall. Used by
+## CopySystem to lift the player onto a copy the moment it is placed.
+func land_at(target: Vector2) -> void:
+	global_position = target
+	# 📖 Without clearing vertical speed the player would keep the momentum of the fall
+	# they were in, and shoot through the copy on the very next tick.
+	velocity.y = 0.0
+	# 📖 is_on_floor() still reflects the previous move_and_slide(), so the grounded
+	# state is assumed here and self-corrects to AIR next tick if nothing is below.
+	_transition_to(State.IDLE if is_zero_approx(velocity.x) else State.RUN)
+
+
 ## Starts a jump if the action was pressed this tick. Returns true when it did, so the
 ## calling state can stop evaluating its other transitions.
 func _try_jump() -> bool:
 	# 📖 Only called from grounded states, so "on the floor" is already guaranteed here.
 	# Letting AIR call this is what would turn into an accidental double jump.
-	if not Input.is_action_just_pressed(ACTION_JUMP):
+	if not InputReader.is_jump_pressed():
 		return false
 
 	# 📖 In Godot's 2D coordinates Y grows downward, so up is negative.
