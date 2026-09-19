@@ -4,9 +4,13 @@
 [ext_resource type="Script" uid="uid://dm4dpcampp5i" path="res://src/copy/copy_system.gd" id="2_hdcac"]
 [ext_resource type="PackedScene" uid="uid://dnntbtib5bjj3" path="res://src/copy/player_copy.tscn" id="3_br53r"]
 [ext_resource type="Resource" uid="uid://d1tfpi1qt317m" path="res://src/levels/test_level_data.tres" id="4_br53r"]
+[ext_resource type="Script" uid="uid://b4v3t4dm8rbxf" path="res://src/levels/level_rules.gd" id="5_7hvae"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
 size = Vector2(650, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yf5fn"]
+size = Vector2(0.5833347, 1.375)
 
 [node name="TestLevel" type="Node2D" unique_id=1246330453]
 
@@ -24,3 +28,15 @@ script = ExtResource("2_hdcac")
 player = NodePath("../Player")
 copy_scene = ExtResource("3_br53r")
 level_data = ExtResource("4_br53r")
+
+[node name="Goal" type="Area2D" parent="." unique_id=425166907]
+position = Vector2(790, 590)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goal" unique_id=1676550129]
+scale = Vector2(48, 48)
+shape = SubResource("RectangleShape2D_yf5fn")
+
+[node name="LevelRules" type="Node" parent="." unique_id=219894023 node_paths=PackedStringArray("player", "goal")]
+script = ExtResource("5_7hvae")
+player = NodePath("../Player")
+goal = NodePath("../Goal")

@@ -15,27 +15,47 @@ const ACTION_PLACE_COPY: StringName = &"place_copy"
 const ACTION_UNDO_COPY: StringName = &"undo_copy"
 const ACTION_CLEAR_COPIES: StringName = &"clear_copies"
 
+# ⚠️SOLID Global mutable state in a layer that was deliberately stateless. The cost is
+# argued in plan.md, decision D1: one switch here freezes every system at once, which is
+# the reason this layer exists — and it is the first thing to break the day there are two
+# players or a recorded replay. It survives scene changes, so whoever turns it off is
+# responsible for turning it back on.
+static var _enabled: bool = true
+
+
+## Turns every gameplay input on or off at once. Reading stays valid either way: a
+## disabled reader reports "the player is doing nothing", never stale values.
+static func set_enabled(value: bool) -> void:
+	_enabled = value
+
+
+## Whether gameplay input is currently being read.
+static func is_enabled() -> bool:
+	return _enabled
+
 
 ## Horizontal intent, in the range [-1, 1].
 static func get_move_axis() -> float:
+	if not _enabled:
+		return 0.0
 	return Input.get_axis(ACTION_LEFT, ACTION_RIGHT)
 
 
 ## True only on the tick the jump was pressed, never while it is held.
 static func is_jump_pressed() -> bool:
-	return Input.is_action_just_pressed(ACTION_JUMP)
+	return _enabled and Input.is_action_just_pressed(ACTION_JUMP)
 
 
 ## True only on the tick the place-copy action was pressed.
 static func is_place_copy_pressed() -> bool:
-	return Input.is_action_just_pressed(ACTION_PLACE_COPY)
+	return _enabled and Input.is_action_just_pressed(ACTION_PLACE_COPY)
 
 
 ## True only on the tick the undo action was pressed.
 static func is_undo_copy_pressed() -> bool:
-	return Input.is_action_just_pressed(ACTION_UNDO_COPY)
+	return _enabled and Input.is_action_just_pressed(ACTION_UNDO_COPY)
 
 
 ## True only on the tick the clear-all action was pressed.
 static func is_clear_copies_pressed() -> bool:
-	return Input.is_action_just_pressed(ACTION_CLEAR_COPIES)
+	return _enabled and Input.is_action_just_pressed(ACTION_CLEAR_COPIES)
