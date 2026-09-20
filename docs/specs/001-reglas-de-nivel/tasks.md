@@ -4,8 +4,8 @@
 
 | # | Tarea | Requisitos | Depende de | Estado |
 |---|---|---|---|---|
-| T1 | Meta, estado completado e input congelado | R1.1, R1.2, R1.4, R1.6, R3.2 | — | ☐ |
-| T2 | Punto de inicio y reinicio manual | R2.1, R2.2, R2.3, R2.5, R3.1 | T1 | ☐ |
+| T1 | Meta, estado completado e input congelado | R1.1, R1.2, R1.4, R1.6, R3.2 | — | ☑ 2026-09-19 |
+| T2 | Punto de inicio y reinicio manual | R2.1, R2.2, R2.3, R2.5, R3.1 | T1 | ☑ 2026-09-19 |
 | T3 | Zonas de muerte | R4.1, R4.2, R4.4 | T2 | ☐ |
 | T4 | Casos borde: reentrada y prioridades | R1.3, R2.4, R4.3 | T3 | ☐ |
 | T5 | Encadenar al siguiente nivel | R1.5 | T4 | ☐ |

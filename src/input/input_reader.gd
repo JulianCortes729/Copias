@@ -14,6 +14,7 @@ const ACTION_JUMP: StringName = &"jump"
 const ACTION_PLACE_COPY: StringName = &"place_copy"
 const ACTION_UNDO_COPY: StringName = &"undo_copy"
 const ACTION_CLEAR_COPIES: StringName = &"clear_copies"
+const ACTION_RESTART_LEVEL: StringName = &"restart_level"
 
 # ⚠️SOLID Global mutable state in a layer that was deliberately stateless. The cost is
 # argued in plan.md, decision D1: one switch here freezes every system at once, which is
@@ -27,11 +28,6 @@ static var _enabled: bool = true
 ## disabled reader reports "the player is doing nothing", never stale values.
 static func set_enabled(value: bool) -> void:
 	_enabled = value
-
-
-## Whether gameplay input is currently being read.
-static func is_enabled() -> bool:
-	return _enabled
 
 
 ## Horizontal intent, in the range [-1, 1].
@@ -59,3 +55,11 @@ static func is_undo_copy_pressed() -> bool:
 ## True only on the tick the clear-all action was pressed.
 static func is_clear_copies_pressed() -> bool:
 	return _enabled and Input.is_action_just_pressed(ACTION_CLEAR_COPIES)
+
+
+## True only on the tick the restart action was pressed.
+## 📖 The only reader that ignores the enabled switch, and it has to: restarting is how a
+## player leaves a finished or hopeless level, so it must work exactly when gameplay
+## input does not. R1.2 freezes movement, jump and copies — never this.
+static func is_restart_level_pressed() -> bool:
+	return Input.is_action_just_pressed(ACTION_RESTART_LEVEL)

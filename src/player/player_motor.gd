@@ -100,6 +100,18 @@ func get_collision_shape() -> Shape2D:
 	return collision.shape
 
 
+## Returns the player to a position carrying no motion at all. Used when a level starts
+## or restarts.
+## 📖 Clears both axes, unlike land_at(), which only cancels the fall: a restart must not
+## inherit the horizontal run the player had when they died.
+func reset_to(target: Vector2) -> void:
+	global_position = target
+	velocity = Vector2.ZERO
+	# 📖 AIR rather than IDLE: the start point may well be above the ground, and AIR
+	# self-corrects to IDLE on the first tick that finds a floor.
+	_transition_to(State.AIR)
+
+
 ## Puts the player standing at the given position and cancels any fall. Used by
 ## CopySystem to lift the player onto a copy the moment it is placed.
 func land_at(target: Vector2) -> void:

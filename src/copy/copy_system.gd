@@ -16,9 +16,11 @@ signal copies_changed(remaining: int, total: int)
 ## eventually grant a different kind of copy without touching this script.
 @export var copy_scene: PackedScene
 
-## This level's rules. The copy limit lives here so that building a level means editing
-## a resource, not this script.
-@export var level_data: LevelData
+## This level's rules, handed over by LevelRules at startup — see setup().
+## 📖 Not exported: a level must declare its data in exactly one place. Two Inspector
+## slots pointing at different resources would not raise an error, it would silently
+## produce a level whose rules contradict each other.
+var level_data: LevelData
 
 ## How many copies this level grants, read straight from its data resource.
 var copy_limit: int:
@@ -38,7 +40,6 @@ func _ready() -> void:
 	# game while still failing loudly the moment a level is wired up wrong.
 	assert(player != null, "CopySystem: assign the Player in the Inspector.")
 	assert(copy_scene != null, "CopySystem: assign the copy scene in the Inspector.")
-	assert(level_data != null, "CopySystem: assign a LevelData resource in the Inspector.")
 
 	_copy_height = _measure_copy_height()
 
@@ -50,6 +51,15 @@ func _ready() -> void:
 	_space_query.margin = 0.0
 	_space_query.exclude = exclusions
 
+
+## Hands this system the level it belongs to. Called by LevelRules while the level starts.
+## 📖 Not done in _ready(): sibling _ready() order follows the scene tree, so this system
+## can and does run before LevelRules exists to hand anything over. Anything needing the
+## level's data waits for this call instead of hoping for a favourable order.
+func setup(data: LevelData) -> void:
+	assert(data != null, "CopySystem.setup: LevelRules handed over a null LevelData.")
+
+	level_data = data
 	copies_changed.emit(remaining(), copy_limit)
 
 

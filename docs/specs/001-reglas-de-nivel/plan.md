@@ -28,17 +28,17 @@ el input entra al juego.
 
 ```mermaid
 flowchart TD
-    Goal[Goal] -->|cuerpo del jugador| LevelRules
-    DeathZone[DeathZone] -->|cuerpo del jugador| LevelRules
+	Goal[Goal] -->|cuerpo del jugador| LevelRules
+	DeathZone[DeathZone] -->|cuerpo del jugador| LevelRules
 
-    LevelRules -->|apaga| InputReader
-    LevelRules -->|reposiciona y frena| PlayerMotor
-    LevelRules -->|retira copias| CopySystem
-    LevelRules -->|lee inicio| LevelStart[LevelStart]
-    LevelRules -->|lee siguiente nivel| LevelData[(LevelData)]
-    LevelRules -->|cambia de escena| SceneTree[SceneTree]
+	LevelRules -->|apaga| InputReader
+	LevelRules -->|reposiciona y frena| PlayerMotor
+	LevelRules -->|retira copias| CopySystem
+	LevelRules -->|lee inicio| LevelStart[LevelStart]
+	LevelRules -->|lee siguiente nivel| LevelData[(LevelData)]
+	LevelRules -->|cambia de escena| SceneTree[SceneTree]
 
-    LevelData -->|límite de copias| CopySystem
+	LevelData -->|límite de copias| CopySystem
 ```
 
 Las dos áreas solo reportan; `LevelRules` es el único que decide. Es la separación que
