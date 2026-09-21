@@ -13,37 +13,44 @@ jugador que quiere saber cuántas copias le quedan tiene que contar de memoria l
 colocó, y lo tiene que hacer mientras resuelve el puzzle — o sea que el juego le cobra
 atención por un dato que él mismo generó.
 
-Lo mismo al ganar: completar un nivel no se anuncia. El jugador deduce que ganó porque
-los controles dejan de responderle, que es la forma más parecida a un cuelgue que tiene
-un juego de avisar algo bueno.
+Hay un segundo problema en la misma zona, y esta spec **no** lo resuelve: completar un
+nivel tampoco se anuncia. Queda planteado acá porque es real y porque su solución no
+cabe en este sistema — ver *Fuera de alcance*.
 
 ## Alcance
 
 - El jugador ve, en todo momento, cuántas copias le quedan por colocar.
 - Ese número refleja cualquier cosa que lo cambie: colocar, deshacer, borrar todo,
   reiniciar el nivel, empezar un nivel.
-- Al completar un nivel, el jugador ve un aviso de que lo completó.
 - Lo que se muestra queda fijo en la pantalla, no en el mundo del nivel.
+- Un nivel mal armado se nota durante el desarrollo, no cuando lo juega alguien.
 
 ## Fuera de alcance
 
 | Qué | Por qué queda afuera |
 |---|---|
+| **Aviso de nivel completado** | **Retirado de esta spec el 2026-09-21, tras `/clarifica`.** El aviso solo se puede ver si algo demora el cambio de nivel, y esa demora es una transición: B7. Especificarlo acá era escribir un requisito cuya única forma de verificarse es un caso que la spec 001 declara sin resolver. Ver el grupo R2, retirado pero conservado |
 | Mostrar el total de copias del nivel ("3 / 5") | Decisión del 2026-09-21: se muestra solo el restante, que es el único dato accionable en el momento. El total se infiere reiniciando |
 | Controles en pantalla (qué tecla hace qué) | Ahora no. Es un problema real —hoy nadie puede jugar sin que le expliquen— pero es enseñanza, no HUD: va con B10 o con un primer nivel que enseñe |
 | Menú de pausa, botones, navegación | Otra spec: B10 |
-| Animaciones, transiciones o efectos del aviso | Ahora no: es pulido, B17 |
+| Animaciones, transiciones o efectos | Ahora no: es pulido, B17 |
 | Tiempo de nivel, par times, medallas | Ahora no: B20 |
 | Feedback de colocación inválida | Otra spec: B12. Y va en el mundo, donde el jugador está mirando, no en un rincón de la pantalla |
 | Barra de vida, vidas, energía | El juego no tiene ninguno de esos conceptos |
+| Ventanas más chicas que 1152 × 648 | Es el tamaño que el proyecto declara como diseño. Por debajo de eso no se garantiza nada, y R3.2 lo dice explícitamente |
 | Qué pasa al completar el último nivel | Sigue siendo la pregunta abierta de la spec 001. Esta spec no la responde |
 
 ## Requisitos
 
 ### R1 — Contador de copias
 
-- **R1.1** — MIENTRAS un nivel está en juego, el sistema de HUD DEBE mostrar cuántas
-  copias le quedan al jugador por colocar.
+- **R1.1** — MIENTRAS la escena de un nivel está cargada, el sistema de HUD DEBE mostrar
+  cuántas copias le quedan al jugador por colocar, incluso con el nivel ya dado por
+  completado.
+  > **Por qué cambió** (2026-09-21, tras `/clarifica`): decía "MIENTRAS un nivel está en
+  > juego", que se leía de dos maneras — con el nivel completado el contador podía seguir
+  > visible o desaparecer, y las dos lecturas daban código distinto. Los *Casos borde* ya
+  > asumían una de las dos sin que ningún requisito la fijara.
 - **R1.2** — CUANDO la cantidad de copias disponibles cambia, el sistema de HUD DEBE
   actualizar el valor mostrado sin que el jugador tenga que hacer ninguna otra cosa.
 - **R1.3** — CUANDO un nivel comienza, el sistema de HUD DEBE mostrar la cantidad total de
@@ -53,43 +60,51 @@ un juego de avisar algo bueno.
 - **R1.5** — MIENTRAS al jugador no le quedan copias, el sistema de HUD DEBE mostrar cero,
   y no ocultar el contador ni sustituirlo por otra cosa.
 
-### R2 — Aviso de nivel completado
+### R2 — Aviso de nivel completado *(retirado)*
 
-- **R2.1** — CUANDO el nivel se da por completado, el sistema de HUD DEBE mostrar un aviso
-  de que el nivel fue completado.
-- **R2.2** — MIENTRAS el nivel no está dado por completado, el sistema de HUD DEBE mantener
-  ese aviso oculto.
-- **R2.3** — CUANDO un nivel comienza, el sistema de HUD DEBE mantener ese aviso oculto.
-- **R2.4** — CUANDO el nivel se reinicia, el sistema de HUD DEBE ocultar ese aviso.
+> **Retirado el 2026-09-21, tras `/clarifica`.** No se borra: los IDs quedan quemados y el
+> hueco es información. El grupo se movió a *Fuera de alcance* porque el aviso es
+> inverificable mientras completar un nivel cambie de escena en el acto.
+>
+> **Decisión de diseño ya tomada, para quien escriba esa spec:** el aviso se queda en
+> pantalla hasta que el nivel cambie o se reinicie. No se oculta solo tras un
+> temporizador — un temporizador es estado que hay que cancelar al reiniciar, y no compra
+> nada mientras no exista un menú del que salir.
 
 ### R3 — Ubicación en pantalla
 
 - **R3.1** — El sistema de HUD DEBE mantener lo que muestra en una posición fija de la
   pantalla, independiente de dónde esté el jugador y de cómo se desplace la vista del
   nivel.
-- **R3.2** — CUANDO la ventana cambia de tamaño o de proporción, el sistema de HUD DEBE
-  seguir mostrando íntegro todo lo que muestra.
+- **R3.2** — MIENTRAS la ventana mide 1152 × 648 píxeles o más en ambos lados, CUANDO la
+  ventana cambia de tamaño o de proporción, el sistema de HUD DEBE seguir mostrando
+  íntegro todo lo que muestra.
+  > **Por qué cambió** (2026-09-21, tras `/clarifica`): no tenía cota. Tal como estaba
+  > exigía funcionar en una ventana de 120 × 80 px, que es imposible y que nadie pretendía.
+
+### R4 — Nivel mal armado
+
+- **R4.1** — SI un nivel se pone en juego con un HUD que no quedó conectado al estado que
+  debe mostrar, ENTONCES el sistema de HUD DEBE fallar de forma visible durante el
+  desarrollo, en vez de mostrar un valor por defecto que disimule el problema.
 
 ## Casos borde
 
 - **Un nivel que otorga cero copias.** El contador muestra cero desde el primer instante.
   Válido: el nivel declara ese límite y R1.5 lo cubre.
-- **El jugador completa el nivel con copias sin usar.** El contador queda en el valor que
-  tenía y el aviso aparece igual. Las dos cosas conviven; el aviso no reemplaza al
-  contador.
-- **El jugador reinicia con el aviso en pantalla.** Cubierto por R2.4: el aviso se va y el
-  contador vuelve al total.
+- **El jugador completa el nivel con copias sin usar.** El contador sigue visible y con el
+  valor que tenía — R1.1. Ver cuántas sobraron en el momento de ganar es la información
+  más interesante del nivel, y es la base de lo que B20 va a medir.
 - **El jugador coloca y deshace la misma copia en rápida sucesión.** El contador termina en
-  el valor correcto. No hay estado que se acumule: cada cambio informa el valor completo,
-  no un incremento.
-- **El nivel se completa y el siguiente entra en juego de inmediato.** El aviso se muestra
-  durante un instante imperceptible. No es un fallo de este sistema — ver Preguntas
-  abiertas.
+  el valor correcto.
+- **El jugador agranda la ventana a una proporción muy ancha.** Cubierto por R3.2: todo
+  sigue visible. Por debajo del tamaño de diseño no se garantiza nada, y está declarado
+  fuera de alcance.
 
 ## Requisitos de performance
 
 Ninguno como criterio de aceptación. Lo que el HUD muestra cambia por eventos discretos
-—colocar, deshacer, borrar, reiniciar, completar— y no escala con nada. Fijar un número de
+—colocar, deshacer, borrar, reiniciar— y no escala con nada. Fijar un número de
 milisegundos acá sería inventar un requisito para tener uno.
 
 Lo que sí hay es una restricción de implementación, y va al plan: nada de esto se
@@ -102,22 +117,19 @@ La spec describe el destino; esto es lo que ya existe y estos requisitos reutili
 - El sistema de copias ya avisa cada vez que la cantidad disponible cambia, y ya lo avisa
   al colocar, al deshacer, al borrar todo y al arrancar el nivel (B2). R1.2, R1.3 y R1.4
   se apoyan en ese aviso; no lo redefinen.
-- El sistema de reglas de nivel ya avisa que el nivel se completó (B3). Ese aviso **hoy no
-  tiene ningún destinatario**: R2.1 es su primer consumidor.
 - El reinicio de nivel ya existe y ya devuelve el total de copias (B3, R2.2 de la 001).
   R1.4 observa el resultado de eso.
+- El sistema de reglas de nivel ya avisa que el nivel se completó (B3). Ese aviso sigue
+  **sin ningún destinatario** — el retiro del grupo R2 lo deja donde estaba, y es deuda
+  declarada que resuelve B7.
 
 ## Preguntas abiertas
 
-- ❓ **¿El aviso de nivel completado se alcanza a ver?** Hoy completar un nivel pone en
-  juego el siguiente de inmediato (R1.5 de la spec 001), así que el aviso de R2.1 aparece
-  y desaparece en el mismo suspiro. Solo sería visible al final de la cadena, donde no hay
-  nivel siguiente — que es justo el caso que la spec 001 dejó sin resolver. Tres salidas
-  posibles, y hay que elegir una antes de implementar R2:
-  1. Se acepta: el aviso existe para el final de la cadena y para cuando haya menú (B10).
-  2. Se demora el cambio de nivel para que el aviso se lea. Eso modifica la spec 001 y
-     suena a B7 (transiciones), no a HUD.
-  3. Se saca R2 de esta spec y el aviso se diseña junto con las transiciones.
+- ❓ **Un nivel armado sin HUD en absoluto: ¿quién se da cuenta?** R4.1 cubre el HUD que
+  está presente pero mal conectado, porque eso el propio HUD lo puede detectar. La
+  ausencia total no: un sistema que no existe no puede quejarse de no existir. Si se
+  quiere cubrir, el requisito le corresponde a otro sistema —el que ya verifica que un
+  nivel esté bien armado, spec 001— y sería una modificación de esa spec, no de esta.
 
 ## Notas para el plan
 
@@ -128,8 +140,10 @@ levantar:
   como requisito (`R3.1 — el sistema DEBE obtener toda la información del estado del
   juego, sin calcularla por su cuenta`) y se sacó al aplicarle el test del método: ese
   criterio se rompe al cambiar de patrón sin que el jugador perciba ninguna diferencia.
-  Eso lo vuelve arquitectura, no comportamiento. Es la regla de capas del GDD y pertenece
-  al plan.
+  Eso lo vuelve arquitectura, no comportamiento. Es la regla de capas del GDD.
+- **Cada aviso de cambio informa el valor completo, no un incremento**, así que el HUD no
+  acumula estado propio y no puede desincronizarse. Estaba escrito dentro de un caso
+  borde, que es implementación escondida donde nadie la busca.
 - Nada de lo que muestra el HUD se recalcula por fotograma.
 - Dónde vive el HUD —dentro de cada nivel o una sola vez para todo el juego— es decisión
   de plan. Afecta a B7 y a B10, así que si la decisión obliga a otras features a
