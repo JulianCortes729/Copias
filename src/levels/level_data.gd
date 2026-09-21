@@ -7,9 +7,8 @@ extends Resource
 ## resource in the Inspector, never touching a script — which is the whole point: the
 ## day a level needs different rules, nobody has to recompile an idea.
 ##
-## Intentionally minimal. The target scene and par time from the GDD land here in B4,
-## when something actually reads them; fields nothing consumes are just clutter that
-## looks like a plan.
+## Intentionally minimal. The par time the GDD mentions is not here: nothing reads it
+## until B20, and a field no system consumes is clutter that looks like a plan.
 
 ## How many copies the player is granted in this level. This is the level's difficulty
 ## dial: with copies lifting the player one height each, it is literally how many floors

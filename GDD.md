@@ -114,7 +114,10 @@ Los sistemas terminados se marcan acá.
   📋 Creció respecto del plan original: absorbió el encadenado de niveles que estaba en
   B7, porque "completar un nivel" no tiene final observable sin él. Además incorporó las
   zonas de muerte, que no estaban en ningún ítem del backlog.
-- [ ] **B4** — `LevelData` como `Resource`. ★ — dep: B3
+- [x] **B4** — `LevelData` como `Resource`. ★ — dep: B3 ✅ 2026-09-21
+  📋 No se construyó como sistema propio: nació en B2 con `copy_limit` y B3 le sumó
+  `next_level` y el dominio de `LevelRules` (D5). El tiempo par no está: su primer
+  consumidor es B20 y un campo que nadie lee es decoración.
 - [ ] **B5** — Un nivel greybox jugable de punta a punta. ★ — dep: B1–B4
 
 ### P2 — sin esto no es un producto
