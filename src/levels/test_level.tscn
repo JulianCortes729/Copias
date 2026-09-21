@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dnntbtib5bjj3" path="res://src/copy/player_copy.tscn" id="3_br53r"]
 [ext_resource type="Script" uid="uid://b4v3t4dm8rbxf" path="res://src/levels/level_rules.gd" id="5_7hvae"]
 [ext_resource type="Resource" uid="uid://d1tfpi1qt317m" path="res://src/levels/test_level_data.tres" id="5_t1chq"]
+[ext_resource type="Script" uid="uid://bxoxapmggkcym" path="res://src/debug/jump_probe.gd" id="6_t1chq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
 size = Vector2(650, 32)
@@ -60,3 +61,7 @@ position = Vector2(-670, 664)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone2" unique_id=676534114]
 shape = SubResource("RectangleShape2D_57qmd")
+
+[node name="JumpProbe" type="Node" parent="." unique_id=3276166 node_paths=PackedStringArray("player")]
+script = ExtResource("6_t1chq")
+player = NodePath("../Player")

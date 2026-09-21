@@ -15,7 +15,8 @@ como plataformas para alcanzar la meta de cada nivel.
 | Niveles objetivo | 12, con punto de corte explícito en el 8 |
 | Arte y audio | Assets CC0 / placeholder |
 | Mecánica de copias | N limitado por nivel, colocables y borrables (última / todas) |
-| Colocación | La copia nace a los pies del jugador y **lo deja parado encima**. Cada copia vale exactamente un piso de altura, se pueda saltar o no. Si no hay lugar arriba, no se coloca y no se gasta |
+| Colocación | La copia nace a los pies del jugador y **lo deja parado encima**. Si no hay lugar arriba, no se coloca y no se gasta |
+| Altura por copia | **32 px colocada parado, ~115 px colocada en vuelo cerca del apex** — medido en B5/H1, 2026-09-21. La suposición original de "un piso fijo, se pueda saltar o no" era falsa: colocar en el aire vale 3,6 veces más |
 | Steam | Posterior. Este GDD cubre el juego, no la publicación |
 | Time-loop / grabación de movimientos | **Descartado.** Es otro juego: exige determinismo, replay y sincronización |
 
@@ -198,7 +199,7 @@ ritmo real no da, se cierra ahí y se publica un juego terminado de 8 niveles.
 |---|---|---|
 | **B11 diseño de niveles** | Alto — el ítem más caro y más incierto. Una sola mecánica se agota alrededor del nivel 8–10 | 3 niveles apenas B8 esté listo, y medir. Si a los 8 se siente repetido, ese dato justifica B19 — no antes |
 | **`CopySystem`** | Alto — es el sistema que va a querer crecer sin control. Toda idea nueva aterriza acá | Congelar la interfaz: colocar, borrar-última, borrar-todo, contar. Las variantes entran como `LevelData` o `Resource` de comportamiento, nunca como un `if` nuevo adentro |
-| ~~**Colisión copia-jugador**~~ | **Cerrado en B2.** Se resolvió eliminando la superposición en vez de gestionarla: el jugador queda parado sobre la copia al colocarla, así que nunca se solapan | Consecuencia de diseño a vigilar en B11: la altura alcanzable pasó a ser aritmética (N copias = N pisos). El límite por nivel es ahora la restricción principal del puzzle, no el salto |
+| ~~**Colisión copia-jugador**~~ | **Cerrado en B2.** Se resolvió eliminando la superposición en vez de gestionarla: el jugador queda parado sobre la copia al colocarla, así que nunca se solapan | Consecuencia de diseño a vigilar en B11: la altura alcanzable es aritmética, pero con dos constantes — N × 32 px colocando parado, N × 115 px colocando en vuelo (B5/H1). El techo de un nivel se diseña contra la segunda, porque es la que usa un jugador que entendió el juego |
 | **Game feel (B8)** | Medio — si llega tarde, invalida niveles ya construidos | Dependencia dura antes de B11 |
 | **Scope creep hacia time-loop** | Medio — idea tentadora que multiplica el proyecto | Ya descartado arriba. Si reaparece, va a P4 con el motivo escrito |
 | **Performance** | Bajo — un 2D con 5 copias no tiene problema de performance | El riesgo real es el inverso: optimizar lo que no está lento. Ningún cambio por performance sin número previo |
