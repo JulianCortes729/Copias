@@ -9,5 +9,4 @@ builds/
 
 # Local authoring tools and internal design notes, kept out of the public repository.
 CLAUDE.md
-GDD.md
 .claude/
