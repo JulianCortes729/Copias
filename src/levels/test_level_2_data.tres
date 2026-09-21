@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="LevelData" format=3 uid="uid://dvmg7apgmw3b6"]
-
-[ext_resource type="Script" uid="uid://da3263qixlxx3" path="res://src/levels/level_data.gd" id="1_cas3f"]
-
-[resource]
-script = ExtResource("1_cas3f")
-copy_limit = 5
-metadata/_custom_type_script = "uid://da3263qixlxx3"

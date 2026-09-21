@@ -119,7 +119,10 @@ Los sistemas terminados se marcan acá.
   📋 No se construyó como sistema propio: nació en B2 con `copy_limit` y B3 le sumó
   `next_level` y el dominio de `LevelRules` (D5). El tiempo par no está: su primer
   consumidor es B20 y un campo que nadie lee es decoración.
-- [ ] **B5** — Un nivel greybox jugable de punta a punta. ★ — dep: B1–B4
+- [x] **B5** — Un nivel greybox jugable de punta a punta. ★ — dep: B1–B4 ✅ 2026-09-21
+  📋 `level_01.tscn`: pozo de 100 px y una meta a 360 px de altura que exige exactamente
+  3 copias — con 2 el techo es 315 px. Los tres números salen de la medición de H1, no
+  de la intuición. **Cierra P1.**
 
 ### P2 — sin esto no es un producto
 
@@ -128,6 +131,9 @@ Los sistemas terminados se marcan acá.
   📋 Reducido: el encadenado nivel → nivel se hace en B3. Acá queda lo que sobra —
   que la carga no congele el juego y que la transición no sea un corte seco.
 - [ ] **B8** — Game feel: coyote time, input buffering, jump cut. ★★ — dep: B1
+  📋 Entra acá una decisión que B5 destapó: el control aéreo es total (`_tick_air` usa
+  la misma aceleración que el piso), así que saltar parado alcanza 139 px y saltar
+  corriendo 147. La carrera previa no cambia nada y ningún obstáculo puede distinguirlas.
 - [ ] **B9** — `GameCamera` con límites por nivel. ★ — dep: B5
 - [ ] **B10** — Menú de título + pausa. ★★ — dep: B7
 - [ ] **B11** — Diseñar y construir 12 niveles. ★★★ — dep: B5, B7, **B8**
