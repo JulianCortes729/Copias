@@ -154,5 +154,5 @@ Nada acá entra en `_process`, así que no hay número que medir ni presupuesto 
 
 ## Requisitos nuevos que aparecieron
 
-Ninguno. El plan se cubre entero con los 10 requisitos vivos de la spec; no hizo falta
-inventar comportamiento para que cerrara.
+Ninguno. El plan se cubre entero con los 8 requisitos vivos de la spec —R1.1 a R1.5, R3.1,
+R3.2 y R4.1—; no hizo falta inventar comportamiento para que cerrara.
