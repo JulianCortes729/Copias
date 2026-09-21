@@ -194,3 +194,31 @@ injected into `LevelRules`.
 Inspector. Explicit, and it fails loudly via `assert` when missing.
 
 **Status.** accepted
+
+---
+
+## 2026-09-21 — The HUD lives inside each level
+
+**Context.** Spec 002 puts a copy counter on screen. Something has to own it, and the
+choice reaches past this feature: B7 wants a HUD that survives a transition, B10 wants one
+that stays alive during a pause.
+
+**Decision.** `hud.tscn` is added to a level like any other node and dies with it. It takes
+a reference to its own level's `CopySystem` through the Inspector, subscribes to
+`copies_changed`, and writes what it receives. No global state, no lookup, no registry.
+
+**Alternatives rejected.**
+- *A single HUD surviving scene changes.* Better for B7 and B10, and that is exactly why
+  it is recorded here rather than dismissed. It loses today because it would have to learn
+  which level just loaded and rewire itself on every change — the problem a single owner
+  already solved for level data — and because a second piece of global state would deepen
+  the debt the `InputReader` switch already carries.
+- *Loose nodes copied into each level.* Twelve levels means changing the typography in
+  twelve places.
+
+**Consequences.** Every level must wire its own HUD, and a level that forgets fails loudly
+via `assert`. The HUD is rebuilt on every level change, which will be visible as a flicker
+once B7 adds transitions — that, or B10 needing the HUD alive while paused, is the trigger
+to revisit this.
+
+**Status.** accepted
