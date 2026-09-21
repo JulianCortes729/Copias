@@ -1,14 +1,15 @@
 extends Node
 
-## Temporary instrument: measures, in pixels, what a jump and a stack of copies actually
+## Measuring instrument: reports, in pixels, what a jump and a stack of copies actually
 ## reach.
 ##
-## It exists to settle one number before any level geometry is drawn. The GDD assumes a
-## copy is worth one floor of height (32 px), which only holds when the copy is placed
-## standing still — placed at the top of a jump it is worth far more. Geometry built on
-## the wrong number is geometry the player walks straight over.
+## Written for B5, to settle a number the GDD had wrong: a copy is worth 32 px placed
+## standing and ~115 px placed mid-jump, not one fixed floor. Kept afterwards because B8
+## moves exactly these numbers, and coyote time tuned by feel is a feature nobody can
+## defend later.
 ##
-## Delete this file and its node when B5 closes. It is evidence, not a system.
+## Not part of the game. It is attached to a level by hand while measuring and taken out
+## before that level is committed — nothing in the game depends on it existing.
 
 ## The player being measured.
 @export var player: PlayerMotor

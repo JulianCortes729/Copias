@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://cbv13rj4i5513"]
+
+[ext_resource type="PackedScene" uid="uid://1ti37ijk0yyr" path="res://src/player/player.tscn" id="1_an1fy"]
+[ext_resource type="Script" uid="uid://dm4dpcampp5i" path="res://src/copy/copy_system.gd" id="2_rrdcy"]
+[ext_resource type="PackedScene" uid="uid://dnntbtib5bjj3" path="res://src/copy/player_copy.tscn" id="3_1s3ip"]
+[ext_resource type="Script" uid="uid://b4v3t4dm8rbxf" path="res://src/levels/level_rules.gd" id="4_8gisd"]
+[ext_resource type="Resource" path="res://src/levels/test_level_2_data.tres" id="5_an1fy"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
+size = Vector2(650, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yf5fn"]
+size = Vector2(48, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_57qmd"]
+size = Vector2(2000, 64)
+
+[node name="TestLevel" type="Node2D" unique_id=1246330453]
+
+[node name="Floor" type="StaticBody2D" parent="." unique_id=1296235243]
+position = Vector2(480, 632)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=1207778252]
+shape = SubResource("RectangleShape2D_g4v7s")
+
+[node name="Player" parent="." unique_id=2124162521 instance=ExtResource("1_an1fy")]
+position = Vector2(477, 427)
+
+[node name="CopySystem" type="Node" parent="." unique_id=1869238433 node_paths=PackedStringArray("player")]
+script = ExtResource("2_rrdcy")
+player = NodePath("../Player")
+copy_scene = ExtResource("3_1s3ip")
+
+[node name="Goal" type="Area2D" parent="." unique_id=425166907]
+position = Vector2(770, 271)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Goal" unique_id=1676550129]
+shape = SubResource("RectangleShape2D_yf5fn")
+
+[node name="LevelRules" type="Node" parent="." unique_id=219894023 node_paths=PackedStringArray("player", "goal", "start_marker", "death_zones", "copy_system")]
+script = ExtResource("4_8gisd")
+player = NodePath("../Player")
+goal = NodePath("../Goal")
+start_marker = NodePath("../LevelStart")
+death_zones = [NodePath("../DeathZone"), NodePath("../DeathZone2")]
+copy_system = NodePath("../CopySystem")
+level_data = ExtResource("5_an1fy")
+
+[node name="LevelStart" type="Marker2D" parent="." unique_id=729715118]
+position = Vector2(476, 599)
+
+[node name="DeathZone" type="Area2D" parent="." unique_id=916277128]
+position = Vector2(1712, 663)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone" unique_id=1814626583]
+shape = SubResource("RectangleShape2D_57qmd")
+
+[node name="DeathZone2" type="Area2D" parent="." unique_id=1630618878]
+position = Vector2(480, 700)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone2" unique_id=676534114]
+position = Vector2(-1288, -32)
+shape = SubResource("RectangleShape2D_57qmd")
