@@ -114,5 +114,18 @@ func _complete() -> void:
 	InputReader.set_enabled(false)
 	completed.emit()
 
-	# Temporary readout until the level actually leads somewhere (T5).
-	print("[LevelRules] level completed")
+	# R1.5 — hand over to the next level.
+	# 📖 Deferred, per D4: this runs inside an Area2D signal, which fires during the
+	# physics step, and changing scenes frees the very node making the call. Deferring
+	# costs nothing; getting it wrong costs an intermittent crash.
+	_advance_to_next_level.call_deferred()
+
+
+func _advance_to_next_level() -> void:
+	if level_data.next_level == null:
+		# 📖 push_error rather than a silent return: reaching the end of the chain is an
+		# unfinished design decision, and it has to be impossible to miss in development.
+		push_error("LevelRules: this level declares no next level. See spec 001, open question.")
+		return
+
+	get_tree().change_scene_to_packed(level_data.next_level)

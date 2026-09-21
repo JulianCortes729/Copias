@@ -15,3 +15,9 @@ extends Resource
 ## dial: with copies lifting the player one height each, it is literally how many floors
 ## they can climb.
 @export_range(0, 20) var copy_limit: int = 3
+
+## The level that follows this one. Chaining levels is editing a .tres, never a script.
+## 📖 A level with none is the end of the chain, which today is an authoring mistake
+## rather than a supported state — the spec's one open question. It fails loudly instead
+## of pretending the game ends gracefully.
+@export var next_level: PackedScene

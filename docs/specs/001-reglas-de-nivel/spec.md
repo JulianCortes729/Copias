@@ -1,8 +1,8 @@
 # 001 — Reglas de nivel
 
-**Estado:** aprobada
+**Estado:** implementada
 **Ítem del backlog:** B3 — `LevelRules`: meta alcanzada → nivel completado; reinicio
-**Última actualización:** 2026-09-17
+**Última actualización:** 2026-09-20
 
 ## Problema
 
@@ -63,8 +63,14 @@ de plataformas es un puzzle: es un espacio donde deambular.
   las copias colocadas y devolver el total disponible al valor del nivel.
 - **R2.3** — CUANDO el nivel se reinicia, el sistema de reglas de nivel DEBE anular la
   velocidad del jugador.
-- **R2.4** — MIENTRAS el nivel está dado por completado, el sistema de reglas de nivel
-  DEBE seguir aceptando el reinicio manual.
+- **R2.4** — MIENTRAS el nivel está dado por completado y todavía en pantalla, el sistema
+  de reglas de nivel DEBE seguir aceptando el reinicio manual.
+  > **Por qué cambió** (2026-09-20, tras `/conforme`): decía "MIENTRAS el nivel está dado
+  > por completado", escrito cuando completar un nivel no llevaba a ningún lado. Con el
+  > encadenado (R1.5), ese estado dura un instante: el nivel siguiente entra en juego y
+  > no hay nada que reiniciar. El criterio quedó viejo, no mal implementado. Donde sí se
+  > observa es al final de la cadena, con el nivel completado en pantalla y sin siguiente
+  > adonde ir — y ahí el reinicio es la única salida del jugador.
 - **R2.5** — CUANDO el jugador acciona el reinicio manual, el sistema de reglas de nivel
   DEBE reiniciar el nivel.
 
