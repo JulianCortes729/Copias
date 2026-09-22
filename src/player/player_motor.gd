@@ -1,41 +1,44 @@
 class_name PlayerMotor
 extends CharacterBody2D
 
-## Player movement rules. Simulation only: this script decides where the player is,
-## never how it looks.
+## Las reglas de movimiento del jugador. Solo simulación: este script decide dónde está el
+## jugador, nunca cómo se ve.
 
-# 📖 States are explicit from day one. Coyote time and input buffering (B8) are rules
-# about *which state you are in*, so giving them a home now avoids a pile of booleans.
+# 📖 Los estados son explícitos desde el día uno. El coyote time y el input buffering (B8)
+# son reglas sobre *en qué estado estás*, así que darles una casa ahora evita una pila de
+# booleanos sueltos.
 enum State {
-	IDLE, ## On the floor, not moving.
-	RUN, ## On the floor, moving horizontally.
-	AIR, ## No floor contact: rising or falling.
+	IDLE, ## En el piso, quieto.
+	RUN, ## En el piso, moviéndose en horizontal.
+	AIR, ## Sin contacto con el piso: subiendo o cayendo.
 }
 
-@export_group("Ground movement")
+@export_group("Movimiento en piso")
 
-## Top horizontal speed, in pixels per second.
+## Velocidad horizontal máxima, en píxeles por segundo.
 @export var max_speed: float = 180.0
 
-## How quickly max_speed is reached, in pixels per second squared.
+## Qué tan rápido se llega a max_speed, en píxeles por segundo al cuadrado.
 @export var acceleration: float = 1200.0
 
-## How quickly the player stops once input is released, in pixels per second squared.
+## Qué tan rápido frena el jugador al soltar el input, en píxeles por segundo al cuadrado.
 @export var friction: float = 1600.0
 
-@export_group("Jump")
+@export_group("Salto")
 
-## Upward speed applied the instant a jump starts, in pixels per second.
+## Velocidad hacia arriba que se aplica en el instante en que arranca el salto, en píxeles
+## por segundo.
 @export var jump_velocity: float = 400.0
 
 var _state: State = State.AIR
 
 
 func _physics_process(delta: float) -> void:
-	# 📖 Simulation runs in _physics_process because it is a fixed timestep: same input,
-	# same result, regardless of framerate.
-	# 📖 The motor asks what the player intends, not which key is down. Action names live
-	# in InputReader, so remapping or replaying input never reaches this file.
+	# 📖 La simulación corre en _physics_process porque es de paso fijo: mismo input, mismo
+	# resultado, sin importar el framerate.
+	# 📖 El motor pregunta qué quiere hacer el jugador, no qué tecla está apretada. Los
+	# nombres de acción viven en InputReader, así que remapear o reproducir input grabado
+	# nunca llega a este archivo.
 	var direction: float = InputReader.get_move_axis()
 
 	match _state:
@@ -50,8 +53,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _tick_idle(delta: float, direction: float) -> void:
-	# 📖 is_on_floor() reports the result of the previous move_and_slide(), so reading it
-	# at the top of the frame is the intended order, not a bug.
+	# 📖 is_on_floor() informa el resultado del move_and_slide() anterior, así que leerlo al
+	# principio del frame es el orden buscado, no un error.
 	_apply_horizontal(delta, direction)
 
 	if not is_on_floor():
@@ -76,14 +79,16 @@ func _tick_run(delta: float, direction: float) -> void:
 		return
 
 	if is_zero_approx(direction) and is_zero_approx(velocity.x):
-		# 📖 Leaving RUN waits for the speed to actually reach zero, not just for the key
-		# release: otherwise the state would lie about the player still sliding.
+		# 📖 Salir de RUN espera a que la velocidad llegue de verdad a cero, no solo a que
+		# se suelte la tecla: si no, el estado estaría mintiendo sobre un jugador que
+		# todavía se desliza.
 		_transition_to(State.IDLE)
 
 
 func _tick_air(delta: float, direction: float) -> void:
-	# 📖 get_gravity() is inherited from PhysicsBody2D and already accounts for project
-	# gravity plus any Area2D override, so there is no gravity constant in this file.
+	# 📖 get_gravity() se hereda de PhysicsBody2D y ya tiene en cuenta la gravedad del
+	# proyecto más cualquier override de un Area2D, así que en este archivo no hay ninguna
+	# constante de gravedad.
 	velocity += get_gravity() * delta
 	_apply_horizontal(delta, direction)
 
@@ -91,54 +96,55 @@ func _tick_air(delta: float, direction: float) -> void:
 		_transition_to(State.RUN if not is_zero_approx(direction) else State.IDLE)
 
 
-## The player's collision shape, so other systems can test whether a destination would
-## fit this player without duplicating its dimensions.
-## Reads the child directly instead of caching in @onready: callers may ask during their
-## own _ready(), and node _ready() order between siblings is not something to rely on.
+## La forma de colisión del jugador, para que otros sistemas puedan probar si un destino
+## le entraría sin duplicar sus dimensiones.
+## Lee el hijo directamente en vez de cachearlo en @onready: quien pregunte puede hacerlo
+## durante su propio _ready(), y el orden de _ready() entre hermanos no es algo en lo que
+## apoyarse.
 func get_collision_shape() -> Shape2D:
 	var collision: CollisionShape2D = $CollisionShape2D
 	return collision.shape
 
 
-## Returns the player to a position carrying no motion at all. Used when a level starts
-## or restarts.
-## 📖 Clears both axes, unlike land_at(), which only cancels the fall: a restart must not
-## inherit the horizontal run the player had when they died.
+## Devuelve al jugador a una posición sin nada de movimiento. Se usa cuando un nivel
+## empieza o se reinicia.
+## 📖 Limpia los dos ejes, a diferencia de land_at(), que solo cancela la caída: un
+## reinicio no puede heredar la carrera horizontal que el jugador traía al morir.
 func reset_to(target: Vector2) -> void:
 	global_position = target
 	velocity = Vector2.ZERO
-	# 📖 AIR rather than IDLE: the start point may well be above the ground, and AIR
-	# self-corrects to IDLE on the first tick that finds a floor.
+	# 📖 AIR y no IDLE: el punto de inicio puede estar perfectamente arriba del piso, y AIR
+	# se autocorrige a IDLE en el primer tick que encuentre suelo.
 	_transition_to(State.AIR)
 
 
-## Puts the player standing at the given position and cancels any fall. Used by
-## CopySystem to lift the player onto a copy the moment it is placed.
+## Deja al jugador parado en la posición dada y cancela cualquier caída. Lo usa CopySystem
+## para subirlo arriba de una copia en el momento en que se coloca.
+## 📖 Sin limpiar la velocidad vertical, el jugador conservaría el impulso de la caída en
+## la que venía y atravesaría la copia en el tick siguiente.
 func land_at(target: Vector2) -> void:
 	global_position = target
-	# 📖 Without clearing vertical speed the player would keep the momentum of the fall
-	# they were in, and shoot through the copy on the very next tick.
 	velocity.y = 0.0
-	# 📖 is_on_floor() still reflects the previous move_and_slide(), so the grounded
-	# state is assumed here and self-corrects to AIR next tick if nothing is below.
+	# 📖 is_on_floor() todavía refleja el move_and_slide() anterior, así que acá se asume el
+	# estado de "en el piso" y se autocorrige a AIR el tick siguiente si no hay nada debajo.
 	_transition_to(State.IDLE if is_zero_approx(velocity.x) else State.RUN)
 
 
-## Starts a jump if the action was pressed this tick. Returns true when it did, so the
-## calling state can stop evaluating its other transitions.
+## Arranca un salto si la acción se presionó este tick. Devuelve true cuando lo hizo, para
+## que el estado que llamó pueda dejar de evaluar sus otras transiciones.
 func _try_jump() -> bool:
-	# 📖 Only called from grounded states, so "on the floor" is already guaranteed here.
-	# Letting AIR call this is what would turn into an accidental double jump.
+	# 📖 Solo lo llaman los estados de piso, así que "estar en el suelo" ya está garantizado
+	# acá. Dejar que AIR lo llame es lo que se convertiría en un doble salto accidental.
 	if not InputReader.is_jump_pressed():
 		return false
 
-	# 📖 In Godot's 2D coordinates Y grows downward, so up is negative.
+	# 📖 En las coordenadas 2D de Godot la Y crece hacia abajo, así que arriba es negativo.
 	velocity.y = -jump_velocity
 	_transition_to(State.AIR)
 	return true
 
 
-## Moves velocity.x toward the target speed, or toward zero when there is no input.
+## Mueve velocity.x hacia la velocidad objetivo, o hacia cero cuando no hay input.
 func _apply_horizontal(delta: float, direction: float) -> void:
 	if is_zero_approx(direction):
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
@@ -151,6 +157,6 @@ func _transition_to(next: State) -> void:
 		return
 
 	_state = next
-	# Temporary: H1-H3 have no visuals, so the Output panel is the only way to observe
-	# state. This print goes away once PlayerView exists.
+	# Temporal: H1-H3 no tienen visuales, así que el panel Output es la única forma de
+	# observar el estado. Este print desaparece cuando exista PlayerView.
 	print("[PlayerMotor] -> ", State.keys()[_state])

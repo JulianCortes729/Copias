@@ -24,51 +24,51 @@ como plataformas para alcanzar la meta de cada nivel.
 
 ## 1. Diagrama de sistemas
 
-Los nodos van en inglés a propósito: son nombres de clases y escenas, y este diagrama
-se reusa tal cual en el `README.md`, que va en inglés.
+Los nodos van en inglés a propósito: son nombres de clases y escenas, y los
+identificadores son la única excepción a la regla de idioma del `CLAUDE.md`.
 
 ```mermaid
 flowchart TD
-    subgraph Presentation["Presentation — lo que se ve y se oye"]
-        PlayerView[PlayerView]
-        CopyView[CopyView]
-        HUD[HUD]
-        Menus[Menus]
-        GameCamera[GameCamera]
-    end
+	subgraph Presentation["Presentation — lo que se ve y se oye"]
+		PlayerView[PlayerView]
+		CopyView[CopyView]
+		HUD[HUD]
+		Menus[Menus]
+		GameCamera[GameCamera]
+	end
 
-    subgraph Infrastructure["Infrastructure — servicios sin reglas de juego"]
-        InputReader[InputReader]
-        SceneLoader[SceneLoader]
-        SaveSystem[SaveSystem]
-        AudioService[AudioService]
-        CopyPool[CopyPool]
-    end
+	subgraph Infrastructure["Infrastructure — servicios sin reglas de juego"]
+		InputReader[InputReader]
+		SceneLoader[SceneLoader]
+		SaveSystem[SaveSystem]
+		AudioService[AudioService]
+		CopyPool[CopyPool]
+	end
 
-    subgraph Core["Core — reglas, estado y simulación"]
-        PlayerMotor[PlayerMotor]
-        CopySystem[CopySystem]
-        LevelRules[LevelRules]
-        LevelData[(LevelData)]
-        RunProgress[RunProgress]
-    end
+	subgraph Core["Core — reglas, estado y simulación"]
+		PlayerMotor[PlayerMotor]
+		CopySystem[CopySystem]
+		LevelRules[LevelRules]
+		LevelData[(LevelData)]
+		RunProgress[RunProgress]
+	end
 
-    InputReader --> PlayerMotor
-    InputReader --> CopySystem
-    PlayerMotor --> PlayerView
-    PlayerMotor --> GameCamera
-    CopySystem --> CopyView
-    CopySystem --> CopyPool
-    CopySystem --> HUD
-    LevelData --> LevelRules
-    LevelData --> CopySystem
-    LevelRules --> RunProgress
-    LevelRules --> SceneLoader
-    RunProgress --> SaveSystem
-    RunProgress --> Menus
-    SceneLoader --> Menus
-    CopySystem --> AudioService
-    PlayerMotor --> AudioService
+	InputReader --> PlayerMotor
+	InputReader --> CopySystem
+	PlayerMotor --> PlayerView
+	PlayerMotor --> GameCamera
+	CopySystem --> CopyView
+	CopySystem --> CopyPool
+	CopySystem --> HUD
+	LevelData --> LevelRules
+	LevelData --> CopySystem
+	LevelRules --> RunProgress
+	LevelRules --> SceneLoader
+	RunProgress --> SaveSystem
+	RunProgress --> Menus
+	SceneLoader --> Menus
+	CopySystem --> AudioService
+	PlayerMotor --> AudioService
 ```
 
 **Core** — lo único que decide qué es verdad en el juego:

@@ -1,57 +1,59 @@
 class_name LevelRules
 extends Node
 
-## The only thing that decides whether a level is won.
+## Lo único que decide si un nivel está ganado.
 ##
-## The goal and, later, the death zones merely report that something touched them. Every
-## rule about what that means — whose body counts, what happens next, what is ignored
-## once the level is over — lives here and nowhere else.
+## La meta y las zonas de muerte solamente informan que algo las tocó. Toda regla sobre
+## qué significa eso —de quién es el cuerpo que cuenta, qué pasa después, qué se ignora
+## una vez terminado el nivel— vive acá y en ningún otro lado.
 
-## Emitted once, when the level becomes completed.
+## Se emite una sola vez, cuando el nivel pasa a estar completado.
 signal completed
 
-## The player whose body is the only one that can complete this level.
+## El jugador cuyo cuerpo es el único que puede completar este nivel.
 @export var player: PlayerMotor
 
-## The area the player has to reach to finish the level.
+## El área que el jugador tiene que alcanzar para terminar el nivel.
 @export var goal: Area2D
 
-## Where the player stands when this level starts or restarts.
+## Dónde queda parado el jugador cuando este nivel empieza o se reinicia.
 @export var start_marker: Marker2D
 
-## The areas that kill the player in this level. R4.4 — a level may declare none, one or
-## many. Wired by hand rather than discovered by searching the tree: an empty list has to
-## mean "this level has no death zones", not "the search found nothing".
+## Las áreas que matan al jugador en este nivel. R4.4 — un nivel puede declarar ninguna,
+## una o muchas. Se cablean a mano en vez de descubrirlas recorriendo el árbol: una lista
+## vacía tiene que significar "este nivel no tiene zonas de muerte", no "la búsqueda no
+## encontró nada".
 @export var death_zones: Array[Area2D] = []
 
-## The copy system of this level, reset along with everything else.
+## El sistema de copias de este nivel, que se reinicia junto con todo lo demás.
 @export var copy_system: CopySystem
 
-## This level's rules. LevelRules owns it and hands it to whoever needs it, so a level
-## declares its data exactly once.
+## Las reglas de este nivel. LevelRules es su dueño y se las entrega a quien las necesite,
+## así un nivel declara sus datos exactamente una vez.
 @export var level_data: LevelData
 
 var _completed: bool = false
 
 
 func _ready() -> void:
-	assert(player != null, "LevelRules: assign the Player in the Inspector.")
-	assert(goal != null, "LevelRules: assign the Goal in the Inspector.")
-	assert(start_marker != null, "LevelRules: assign the LevelStart marker in the Inspector.")
-	assert(copy_system != null, "LevelRules: assign the CopySystem in the Inspector.")
-	assert(level_data != null, "LevelRules: assign a LevelData resource in the Inspector.")
+	assert(player != null, "LevelRules: asigná el Player en el Inspector.")
+	assert(goal != null, "LevelRules: asigná el Goal en el Inspector.")
+	assert(start_marker != null, "LevelRules: asigná el marcador LevelStart en el Inspector.")
+	assert(copy_system != null, "LevelRules: asigná el CopySystem en el Inspector.")
+	assert(level_data != null, "LevelRules: asigná un recurso LevelData en el Inspector.")
 
 	goal.body_entered.connect(_on_goal_body_entered)
 
 	for zone in death_zones:
-		assert(zone != null, "LevelRules: one of the Death Zones entries is empty.")
+		assert(zone != null, "LevelRules: una de las entradas de Death Zones está vacía.")
 		zone.body_entered.connect(_on_death_zone_body_entered)
 
-	# D5 — the copy system gets its data from here, never from its own Inspector slot.
+	# D5 — el sistema de copias recibe sus datos desde acá, nunca de su propia casilla del
+	# Inspector.
 	copy_system.setup(level_data)
 
-	# R3.1, R3.2 — a level always begins the same way, whatever the previous attempt did
-	# and wherever the player node happened to be left in the editor.
+	# R3.1, R3.2 — un nivel siempre empieza igual, haya hecho lo que haya hecho el intento
+	# anterior y haya quedado donde haya quedado el jugador al construir la escena.
 	restart()
 
 
@@ -60,32 +62,32 @@ func _physics_process(_delta: float) -> void:
 		restart()
 
 
-## Returns the level to its starting state.
-## 📖 R2.4 — deliberately not guarded by _completed: restarting is the one thing that
-## still has to work after the level is won.
+## Devuelve el nivel a su estado inicial.
+## 📖 R2.4 — a propósito no está protegido por _completed: reiniciar es lo único que tiene
+## que seguir funcionando después de ganar el nivel.
 func restart() -> void:
 	_completed = false
 	InputReader.set_enabled(true)
 
-	# R2.1, R2.3 — back to the start with no inherited motion.
+	# R2.1, R2.3 — de vuelta al inicio sin movimiento heredado.
 	player.reset_to(start_marker.global_position)
-	# R2.2 — every placed copy is withdrawn and the count returns to the level's total.
+	# R2.2 — se retiran todas las copias colocadas y el total vuelve al valor del nivel.
 	copy_system.clear()
 
 
 func _exit_tree() -> void:
-	# 📖 The switch outlives this node. Leaving a level while it is off would carry a
-	# frozen game into whatever comes next, and the bug would look like broken input.
+	# 📖 El interruptor sobrevive a este nodo. Salir de un nivel con el input apagado
+	# arrastraría un juego congelado a lo que venga después, y el bug parecería input roto.
 	InputReader.set_enabled(true)
 
 
 func _on_goal_body_entered(body: Node2D) -> void:
-	# R1.6 — only the player's body completes a level. A copy touching the goal is
-	# ignored, otherwise a puzzle could be won by throwing a copy instead of arriving.
+	# R1.6 — solo el cuerpo del jugador completa un nivel. Una copia que toca la meta se
+	# ignora; si no, un puzzle podría ganarse tirando una copia en vez de llegando.
 	if body != player:
 		return
 
-	# R1.3 — touching the goal again changes nothing.
+	# R1.3 — volver a tocar la meta no cambia nada.
 	if _completed:
 		return
 
@@ -93,12 +95,12 @@ func _on_goal_body_entered(body: Node2D) -> void:
 
 
 func _on_death_zone_body_entered(body: Node2D) -> void:
-	# R4.2 — copies fall into pits constantly, and a copy dying would restart the level
-	# out from under a player who did nothing wrong. Only their own body kills them.
+	# R4.2 — las copias se caen a los pozos todo el tiempo, y que muriera una reiniciaría
+	# el nivel por debajo de un jugador que no hizo nada mal. Solo su propio cuerpo lo mata.
 	if body != player:
 		return
 
-	# R4.3 — a level already won cannot be lost afterwards. Verified in T4.
+	# R4.3 — un nivel ya ganado no se puede perder después. Verificado en T4.
 	if _completed:
 		return
 
@@ -108,24 +110,25 @@ func _on_death_zone_body_entered(body: Node2D) -> void:
 func _complete() -> void:
 	_completed = true
 
-	# R1.2 — input stops, the simulation does not. A player who reached the goal in
-	# mid-air keeps falling, because freezing physics would be a behaviour nobody asked
-	# for and the spec does not describe.
+	# R1.2 — el input se detiene, la simulación no. Un jugador que llegó a la meta en el
+	# aire sigue cayendo, porque congelar la física sería un comportamiento que nadie pidió
+	# y que la spec no describe.
 	InputReader.set_enabled(false)
 	completed.emit()
 
-	# R1.5 — hand over to the next level.
-	# 📖 Deferred, per D4: this runs inside an Area2D signal, which fires during the
-	# physics step, and changing scenes frees the very node making the call. Deferring
-	# costs nothing; getting it wrong costs an intermittent crash.
+	# R1.5 — se le pasa la posta al nivel siguiente.
+	# 📖 Diferido, según D4: esto corre dentro de una señal de Area2D, que se dispara
+	# durante el paso de física, y cambiar de escena libera justamente el nodo que hace la
+	# llamada. Diferirlo no cuesta nada; equivocarse cuesta un crash intermitente.
 	_advance_to_next_level.call_deferred()
 
 
 func _advance_to_next_level() -> void:
 	if level_data.next_level == null:
-		# 📖 push_error rather than a silent return: reaching the end of the chain is an
-		# unfinished design decision, and it has to be impossible to miss in development.
-		push_error("LevelRules: this level declares no next level. See spec 001, open question.")
+		# 📖 push_error en vez de un return silencioso: llegar al final de la cadena es una
+		# decisión de diseño sin terminar, y tiene que ser imposible de no ver en
+		# desarrollo.
+		push_error("LevelRules: este nivel no declara nivel siguiente. Ver spec 001, pregunta abierta.")
 		return
 
 	get_tree().change_scene_to_packed(level_data.next_level)

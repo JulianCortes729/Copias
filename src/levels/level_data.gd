@@ -1,22 +1,22 @@
 class_name LevelData
 extends Resource
 
-## The rules of a single level, stored as data rather than code.
+## Las reglas de un nivel, guardadas como dato en vez de como código.
 ##
-## Each level owns a .tres file built from this class. Designing a level means editing a
-## resource in the Inspector, never touching a script — which is the whole point: the
-## day a level needs different rules, nobody has to recompile an idea.
+## Cada nivel tiene su propio archivo .tres construido a partir de esta clase. Diseñar un
+## nivel es editar un recurso en el Inspector, nunca tocar un script — que es justamente
+## el punto: el día que un nivel necesite reglas distintas, nadie tiene que recompilar
+## una idea.
 ##
-## Intentionally minimal. The par time the GDD mentions is not here: nothing reads it
-## until B20, and a field no system consumes is clutter that looks like a plan.
+## A propósito mínima. El tiempo par que menciona el GDD no está acá: nadie lo lee hasta
+## B20, y un campo que ningún sistema consume es decoración que parece un plan.
 
-## How many copies the player is granted in this level. This is the level's difficulty
-## dial: with copies lifting the player one height each, it is literally how many floors
-## they can climb.
+## Cuántas copias otorga este nivel al jugador. Es el dial de dificultad del nivel: como
+## cada copia levanta al jugador una altura, es literalmente cuántos pisos puede subir.
 @export_range(0, 20) var copy_limit: int = 3
 
-## The level that follows this one. Chaining levels is editing a .tres, never a script.
-## 📖 A level with none is the end of the chain, which today is an authoring mistake
-## rather than a supported state — the spec's one open question. It fails loudly instead
-## of pretending the game ends gracefully.
+## El nivel que sigue a este. Encadenar niveles es editar un .tres, nunca un script.
+## 📖 Un nivel sin nivel siguiente es el final de la cadena, que hoy es un error de
+## autoría y no un estado soportado — la pregunta abierta de la spec. Falla de forma
+## ruidosa en vez de fingir que el juego termina con elegancia.
 @export var next_level: PackedScene

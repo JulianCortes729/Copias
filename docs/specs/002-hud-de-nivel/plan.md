@@ -33,9 +33,9 @@ actualiza en el mismo commit que la implementación.
 
 ```mermaid
 flowchart LR
-    LevelRules -->|setup| CopySystem
-    CopySystem -.->|copies_changed| LevelHud
-    LevelHud --> Label
+	LevelRules -->|setup| CopySystem
+	CopySystem -.->|copies_changed| LevelHud
+	LevelHud --> Label
 ```
 
 La flecha punteada es una señal: `CopySystem` no conoce a `LevelHud`. La dependencia de

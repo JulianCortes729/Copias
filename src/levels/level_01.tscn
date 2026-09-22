@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://g8naatvesc0u"]
 
 [ext_resource type="PackedScene" uid="uid://1ti37ijk0yyr" path="res://src/player/player.tscn" id="1_gv33s"]
+[ext_resource type="Script" uid="uid://cqnxwxnl8fgs7" path="res://src/debug/export_timing_probe.gd" id="1_p1npw"]
 [ext_resource type="Script" uid="uid://dm4dpcampp5i" path="res://src/copy/copy_system.gd" id="2_0nnfd"]
 [ext_resource type="Script" uid="uid://b4v3t4dm8rbxf" path="res://src/levels/level_rules.gd" id="3_07edn"]
 [ext_resource type="PackedScene" uid="uid://dnntbtib5bjj3" path="res://src/copy/player_copy.tscn" id="3_yqmen"]
@@ -25,6 +26,10 @@ size = Vector2(48, 48)
 size = Vector2(1600, 60)
 
 [node name="Level01" type="Node2D" unique_id=907346993]
+
+[node name="ExportProbe" type="Node" parent="." unique_id=92046160 node_paths=PackedStringArray("subject")]
+script = ExtResource("1_p1npw")
+subject = NodePath("../CopySystem")
 
 [node name="FloorLeft" type="StaticBody2D" parent="." unique_id=816015208]
 position = Vector2(210, 580)

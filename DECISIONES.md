@@ -1,224 +1,246 @@
-# Architecture decisions
+# Decisiones de arquitectura
 
-Decisions other features have to respect. Choices that only affect one feature live in
-that feature's `docs/specs/NNN-.../plan.md` and are not repeated here.
-
----
-
-## 2026-09-16 — Player movement is an explicit state machine, not flags
-
-**Context.** A 2D platformer needs coyote time, input buffering, jump cut and variable
-jump height. Each of those is a rule about *which state the player is in*. The shortest
-path — a single `_physics_process` driven by `velocity` and `is_on_floor()` — expresses
-those rules as loose booleans, and three booleans describe eight states while only four
-were ever considered.
-
-**Decision.** `PlayerMotor` is a `CharacterBody2D` with an `enum` + `match` state machine
-in one file: `IDLE`, `RUN`, `AIR`. Every state answers how it is entered, what interrupts
-it and where it exits.
-
-**Alternatives rejected.**
-- *No state machine at all.* Shorter today, and the known route to a 400-line player
-  script where nobody can say why the character sometimes double-jumps.
-- *Pure simulation in a `RefCounted`, testable without a `SceneTree`.* Rejected because
-  `move_and_slide()` and `is_on_floor()` belong to the node. Splitting the simulation out
-  would leave collision inside and rules outside, with two positions to keep in sync. The
-  separation pays where logic does not depend on engine physics — not here.
-
-**Consequences.** Game feel work lands as fields inside a state instead of a refactor.
-Costs one layer of ceremony while there are only three states. A state-per-node machine
-is still available later if entry/exit logic grows.
-
-**Status.** accepted
+Decisiones que el resto de las features tienen que respetar. Las que afectan a una sola
+feature viven en su `docs/specs/NNN-.../plan.md` y no se repiten acá.
 
 ---
 
-## 2026-09-17 — All gameplay input goes through one static `InputReader`
+## 2026-09-16 — El movimiento del jugador es una máquina de estados explícita, no banderas
 
-**Context.** Systems calling `Input` directly spread action names across the codebase,
-and remapping (B21) would then mean touching every system.
+**Contexto.** Un plataformero 2D necesita coyote time, input buffering, jump cut y altura
+de salto variable. Cada una de esas cosas es una regla sobre *en qué estado está el
+jugador*. El camino más corto —un solo `_physics_process` manejado por `velocity` e
+`is_on_floor()`— expresa esas reglas como booleanos sueltos, y tres booleanos describen
+ocho estados cuando nunca se pensaron más de cuatro.
 
-**Decision.** `InputReader` is the only place that names input actions. Systems ask what
-the player intends, never which key is down. It is static: the layer holds no state, so
-there is nothing to instantiate or wire. Introduced only once a second consumer existed
-(`place_copy`), per the project's complexity budget.
+**Decisión.** `PlayerMotor` es un `CharacterBody2D` con una máquina de estados `enum` +
+`match` en un solo archivo: `IDLE`, `RUN`, `AIR`. Cada estado responde cómo se entra, qué
+lo interrumpe y hacia dónde sale.
 
-**Alternatives rejected.**
-- *Calling `Input` from each system.* One consumer made this defensible; two did not.
-- *An injectable instance behind an interface.* Correct in principle and unpaid for:
-  there are no tests, no replays and no AI player. That is the trigger to revisit.
+**Alternativas descartadas.**
+- *Ninguna máquina de estados.* Más corto hoy, y el camino conocido hacia un script de
+  jugador de 400 líneas donde nadie puede explicar por qué el personaje a veces hace doble
+  salto.
+- *Simulación pura en un `RefCounted`, testeable sin `SceneTree`.* Descartada porque
+  `move_and_slide()` e `is_on_floor()` son del nodo. Partirla dejaría la colisión adentro
+  y las reglas afuera, con dos posiciones que mantener sincronizadas. Esa separación paga
+  donde la lógica no depende de la física del motor — no acá.
 
-**Consequences.** Remapping and replay have a single seam. Makes it trivial to freeze all
-input at once — see the next entry, which is also this decision's main cost.
+**Consecuencias.** El trabajo de game feel entra como campos dentro de un estado en vez de
+como refactor. Cuesta una capa de ceremonia mientras haya solo tres estados. Una máquina
+de un estado por nodo sigue disponible más adelante si la lógica de entrada y salida
+crece.
 
-**Status.** accepted
-
----
-
-## 2026-09-18 — One global switch freezes gameplay input
-
-**Context.** Completing a level must stop the player acting (spec 001, R1.2) without
-stopping physics: someone who reaches the goal in mid-air should keep falling.
-
-**Decision.** `InputReader` carries a static `_enabled` flag. `LevelRules` turns it off on
-completion and back on when leaving the tree. Readers return neutral values while off.
-The restart action deliberately ignores the flag: restarting is how a player leaves a
-finished or unwinnable level, so it has to work exactly when gameplay input does not.
-
-**Alternatives rejected.**
-- *Disabling `_physics_process` on the player and copy system.* Does more than asked: it
-  would stop gravity too, inventing a behaviour no requirement describes.
-- *A `FINISHED` state in the player's state machine.* Solves the player and not the copy
-  system, so a second mechanism would be needed anyway.
-
-**Consequences.** ⚠️ This puts global mutable state in a deliberately stateless layer — a
-singleton by another name. It breaks the day there are two players, a recorded replay, or
-a pause menu that needs input while the game is frozen (B10). It also survives scene
-changes, so whoever turns it off owns turning it back on.
-
-**Status.** accepted
+**Estado.** aceptada
 
 ---
 
-## 2026-09-17 — Placing a copy lifts the player on top of it
+## 2026-09-17 — Todo el input de juego pasa por un único `InputReader` estático
 
-**Context.** Copies spawn where the player stands, so player and copy overlap. The first
-implementation made a copy intangible to its owner until they stepped clear. Playing it
-exposed the flaw: a copy placed while falling solidifies *above* the player, useless as a
-step.
+**Contexto.** Sistemas que llaman a `Input` directamente desparraman nombres de acción por
+todo el código, y remapear (B21) pasaría a significar tocar cada sistema.
 
-**Decision.** Placing a copy puts the player standing on top of it, always — on the ground
-and in the air. Placement is refused, and the copy not spent, when the destination is
-occupied.
+**Decisión.** `InputReader` es el único lugar que nombra acciones de input. Los sistemas
+preguntan qué quiere hacer el jugador, nunca qué tecla está apretada. Es estático: la capa
+no guarda estado, así que no hay nada que instanciar ni cablear. Se introdujo recién
+cuando existió un segundo consumidor (`place_copy`), según el presupuesto de complejidad
+del proyecto.
 
-**Alternatives rejected.**
-- *Intangible copies that solidify on exit.* Superseded. Only worked when placing during
-  a jump's ascent.
-- *Rejecting placement on overlap.* The most obvious action in the game — leaving a step
-  where you stand — would be the one that fails.
-- *One-way platforms.* Removes the problem but bans copies as walls, cutting puzzle space.
+**Alternativas descartadas.**
+- *Llamar a `Input` desde cada sistema.* Con un consumidor era defendible; con dos dejó de
+  serlo.
+- *Una instancia inyectable detrás de una interfaz.* Correcta en principio y sin pagar: no
+  hay tests, ni replays, ni jugador controlado por IA. Ese es el disparador para
+  revisarla.
 
-**Consequences.** Deleted ~50 lines: collision exceptions, the proximity probe and a
-signal. Every copy is worth exactly one floor of height, so reachable height is arithmetic
-rather than a test of jump skill, and the per-level copy limit becomes the puzzle's main
-constraint. Level design (B11) must treat it as such. Copies and the player must stay the
-same size for the lift to line up.
+**Consecuencias.** El remapeo y el replay tienen una sola costura. Vuelve trivial congelar
+todo el input de una vez — ver la entrada siguiente, que es además el costo principal de
+esta decisión.
 
-**Status.** accepted
+**Estado.** aceptada
 
 ---
 
-## 2026-09-17 — Occupancy is tested by shape overlap, not by contact
+## 2026-09-18 — Un interruptor global congela el input de juego
 
-**Context.** Refusing a blocked placement first used `test_move()` with
-`recovery_as_collision`. It reported any *touch*, so standing beside an existing copy
-blocked placement even with the space above completely free.
+**Contexto.** Completar un nivel tiene que frenar al jugador (spec 001, R1.2) sin frenar la
+física: alguien que llega a la meta en el aire debería seguir cayendo.
 
-**Decision.** Occupancy is a `intersect_shape()` query against the space state with
-`margin = 0`, using the player's own collision shape. Bodies that merely touch do not
-count as occupying.
+**Decisión.** `InputReader` lleva una bandera estática `_enabled`. `LevelRules` la apaga al
+completar y la vuelve a prender al salir del árbol. Los lectores devuelven valores neutros
+mientras está apagada. La acción de reinicio ignora la bandera a propósito: reiniciar es
+cómo un jugador sale de un nivel terminado o imposible, así que tiene que funcionar
+exactamente cuando el input de juego no funciona.
 
-**Alternatives rejected.**
-- *`test_move()` with `recovery_as_collision`.* Superseded. It answers a different
-  question than the one being asked.
+**Alternativas descartadas.**
+- *Apagar `_physics_process` en el jugador y el sistema de copias.* Hace más de lo pedido:
+  frenaría también la gravedad, inventando un comportamiento que ningún requisito
+  describe.
+- *Un estado `FINISHED` en la máquina de estados del jugador.* Resuelve el jugador y no el
+  sistema de copias, así que haría falta un segundo mecanismo igual.
 
-**Consequences.** Any future "does this fit here" check should use the same query rather
-than a movement test. Allocates an `Array` per query; acceptable because it runs on a key
-press, never per frame, and unmeasured either way.
+**Consecuencias.** ⚠️ Esto mete estado global mutable en una capa deliberadamente sin
+estado — un singleton con otro nombre. Se rompe el día que haya dos jugadores, un replay
+grabado, o un menú de pausa que necesite input mientras el juego está congelado (B10).
+Además sobrevive a los cambios de escena, así que quien lo apaga se hace dueño de volver a
+prenderlo.
 
-**Status.** accepted
-
----
-
-## 2026-09-20 — A level restarts in place instead of reloading the scene
-
-**Context.** Spec 001 requires restart to return the player to the start, withdraw placed
-copies and cancel velocity (R2.1–R2.3). A puzzle game restarts many times per minute.
-
-**Decision.** `LevelRules.restart()` performs those three actions on the live scene.
-
-**Alternatives rejected.**
-- *`get_tree().reload_current_scene()`.* Three lines, and impossible to forget any state.
-  It was the cheaper and safer option; this is the most debatable decision in the project
-  so far. It lost because per-attempt state that must survive a restart — an attempt
-  counter (B20), a transition effect (B17) — would force undoing it later.
-
-**Consequences.** Anything stateful added to a level must be reset explicitly in
-`restart()`, and forgetting shows up only on a second attempt. If that list grows past
-three or four entries, scene reload becomes the right answer and this should be reverted.
-
-**Status.** accepted
+**Estado.** aceptada
 
 ---
 
-## 2026-09-20 — A level declares its data once, owned by `LevelRules`
+## 2026-09-17 — Colocar una copia deja al jugador parado encima
 
-**Context.** `CopySystem` exported its own `LevelData` slot. Adding a second system that
-needed the same resource would give a level two Inspector slots that could point at
-different resources — a mismatch that raises no error and produces contradictory rules.
+**Contexto.** Las copias nacen donde está parado el jugador, así que jugador y copia se
+solapan. La primera implementación hacía que una copia fuera intangible para su dueño
+hasta que se corriera. Jugarlo expuso la falla: una copia colocada mientras caés se
+solidifica *arriba* tuyo, inútil como escalón.
 
-**Decision.** `LevelRules` owns the level's `LevelData` and hands it to whoever needs it
-during startup. `CopySystem` receives it through `setup()` rather than exporting it.
-Handover happens explicitly because sibling `_ready()` order follows the scene tree and
-cannot be relied on.
+**Decisión.** Colocar una copia deja al jugador parado encima, siempre — en el piso y en
+el aire. La colocación se rechaza, y la copia no se gasta, cuando el destino está ocupado.
 
-**Alternatives rejected.**
-- *Each system exporting its own slot.* Silent misconfiguration.
-- *An autoload holding the current level's data.* Global state for a problem that a single
-  owner solves.
+**Alternativas descartadas.**
+- *Copias intangibles que se solidifican al salir.* Superada. Solo funcionaba colocando
+  durante la subida de un salto.
+- *Rechazar la colocación cuando hay solapamiento.* La acción más obvia del juego —dejar
+  un escalón donde estás parado— sería justo la que falla.
+- *Plataformas de una sola dirección.* Elimina el problema pero prohíbe usar copias como
+  paredes, recortando el espacio de puzzles.
 
-**Consequences.** New systems needing level data get it from `LevelRules`, not from their
-own Inspector slot. Adding a level means editing a `.tres`, never a script. The handover
-chain gets longer with each consumer; if it becomes unwieldy, revisit.
+**Consecuencias.** Borró ~50 líneas: excepciones de colisión, el probe de proximidad y una
+señal. La altura alcanzable pasó a ser aritmética en vez de una prueba de habilidad de
+salto, y el límite de copias por nivel se volvió la restricción principal del puzzle. El
+diseño de niveles (B11) tiene que tratarlo como tal. Copias y jugador tienen que seguir
+midiendo lo mismo para que la subida calce.
 
-**Status.** accepted
+> **Corregido el 2026-09-21, con la medición de B5/H1.** Esta entrada decía que cada copia
+> vale exactamente un piso de altura. Es falso: vale 32 px colocada parado y ~115 px
+> colocada en pleno salto. La altura sigue siendo aritmética, pero con dos constantes, y
+> el techo de un nivel se diseña contra la segunda.
 
----
-
-## 2026-09-20 — The player's body is identified by injected reference
-
-**Context.** Goals and death zones must react to the player's body and ignore their
-copies (spec 001, R1.6 and R4.2).
-
-**Decision.** Handlers compare the reported body against the player reference already
-injected into `LevelRules`.
-
-**Alternatives rejected.**
-- *Collision layers.* Strictly better for performance — the engine filters and the signal
-  never fires — but it buys layer configuration invisible from the code in exchange for a
-  saving nobody measured. Revisit if ignored signals ever show up in the Profiler.
-- *Groups (`is_in_group("player")`).* Banned by the project standards: a group standing in
-  for a reference is a global lookup in disguise.
-
-**Consequences.** Every area that reacts to the player needs that reference wired in the
-Inspector. Explicit, and it fails loudly via `assert` when missing.
-
-**Status.** accepted
+**Estado.** aceptada
 
 ---
 
-## 2026-09-21 — The HUD lives inside each level
+## 2026-09-17 — La ocupación se prueba por solapamiento de formas, no por contacto
 
-**Context.** Spec 002 puts a copy counter on screen. Something has to own it, and the
-choice reaches past this feature: B7 wants a HUD that survives a transition, B10 wants one
-that stays alive during a pause.
+**Contexto.** Rechazar una colocación bloqueada usaba al principio `test_move()` con
+`recovery_as_collision`. Informaba cualquier *contacto*, así que estar parado al lado de
+una copia existente bloqueaba la colocación incluso con el espacio de arriba
+completamente libre.
 
-**Decision.** `hud.tscn` is added to a level like any other node and dies with it. It takes
-a reference to its own level's `CopySystem` through the Inspector, subscribes to
-`copies_changed`, and writes what it receives. No global state, no lookup, no registry.
+**Decisión.** La ocupación es una consulta `intersect_shape()` contra el estado del
+espacio con `margin = 0`, usando la propia forma de colisión del jugador. Los cuerpos que
+apenas se tocan no cuentan como que ocupan.
 
-**Alternatives rejected.**
-- *A single HUD surviving scene changes.* Better for B7 and B10, and that is exactly why
-  it is recorded here rather than dismissed. It loses today because it would have to learn
-  which level just loaded and rewire itself on every change — the problem a single owner
-  already solved for level data — and because a second piece of global state would deepen
-  the debt the `InputReader` switch already carries.
-- *Loose nodes copied into each level.* Twelve levels means changing the typography in
-  twelve places.
+**Alternativas descartadas.**
+- *`test_move()` con `recovery_as_collision`.* Superada. Responde una pregunta distinta de
+  la que se estaba haciendo.
 
-**Consequences.** Every level must wire its own HUD, and a level that forgets fails loudly
-via `assert`. The HUD is rebuilt on every level change, which will be visible as a flicker
-once B7 adds transitions — that, or B10 needing the HUD alive while paused, is the trigger
-to revisit this.
+**Consecuencias.** Cualquier chequeo futuro de "¿esto entra acá?" debería usar la misma
+consulta y no una prueba de movimiento. Aloca un `Array` por consulta; aceptable porque
+corre al apretar una tecla, nunca por frame, y sin medir en ninguno de los dos casos.
 
-**Status.** accepted
+**Estado.** aceptada
+
+---
+
+## 2026-09-20 — Un nivel se reinicia en caliente en vez de recargar la escena
+
+**Contexto.** La spec 001 exige que el reinicio devuelva al jugador al inicio, retire las
+copias colocadas y cancele la velocidad (R2.1–R2.3). Un juego de puzzles se reinicia
+muchas veces por minuto.
+
+**Decisión.** `LevelRules.restart()` hace esas tres cosas sobre la escena viva.
+
+**Alternativas descartadas.**
+- *`get_tree().reload_current_scene()`.* Tres líneas, e imposible olvidarse de algún
+  estado. Era la opción más barata y más segura; esta es la decisión más discutible del
+  proyecto hasta ahora. Perdió porque el estado por intento que tiene que sobrevivir a un
+  reinicio —un contador de intentos (B20), un efecto de transición (B17)— obligaría a
+  deshacerla más adelante.
+
+**Consecuencias.** Todo lo que se agregue a un nivel y tenga estado hay que reiniciarlo
+explícitamente en `restart()`, y olvidarse aparece recién en un segundo intento. Si esa
+lista pasa de tres o cuatro entradas, recargar la escena pasa a ser la respuesta correcta
+y esto habría que revertirlo.
+
+**Estado.** aceptada
+
+---
+
+## 2026-09-20 — Un nivel declara sus datos una sola vez, y el dueño es `LevelRules`
+
+**Contexto.** `CopySystem` exportaba su propia casilla de `LevelData`. Agregar un segundo
+sistema que necesitara el mismo recurso le daría a un nivel dos casillas del Inspector
+capaces de apuntar a recursos distintos — un desajuste que no levanta ningún error y
+produce reglas contradictorias.
+
+**Decisión.** `LevelRules` es dueño del `LevelData` del nivel y se lo entrega a quien lo
+necesite durante el arranque. `CopySystem` lo recibe por `setup()` en vez de exportarlo.
+La entrega es explícita porque el orden de `_ready()` entre hermanos sigue al árbol de
+escena y no es algo en lo que apoyarse.
+
+**Alternativas descartadas.**
+- *Que cada sistema exporte su propia casilla.* Mala configuración silenciosa.
+- *Un autoload con los datos del nivel actual.* Estado global para un problema que
+  resuelve un dueño único.
+
+**Consecuencias.** Los sistemas nuevos que necesiten datos del nivel se los piden a
+`LevelRules`, no a su propia casilla del Inspector. Agregar un nivel es editar un `.tres`,
+nunca un script. La cadena de entrega se alarga con cada consumidor; si se vuelve
+incómoda, revisar.
+
+**Estado.** aceptada
+
+---
+
+## 2026-09-20 — El cuerpo del jugador se identifica por referencia inyectada
+
+**Contexto.** Las metas y las zonas de muerte tienen que reaccionar al cuerpo del jugador
+e ignorar sus copias (spec 001, R1.6 y R4.2).
+
+**Decisión.** Los manejadores comparan el cuerpo informado contra la referencia al jugador
+que ya está inyectada en `LevelRules`.
+
+**Alternativas descartadas.**
+- *Capas de colisión.* Estrictamente mejor en performance —filtra el motor y la señal
+  nunca se dispara— pero compra configuración de capas invisible desde el código a cambio
+  de un ahorro que nadie midió. Revisar si alguna vez aparecen señales ignoradas en el
+  Profiler.
+- *Grupos (`is_in_group("player")`).* Prohibido por los estándares del proyecto: un grupo
+  haciendo de referencia es una búsqueda global disfrazada.
+
+**Consecuencias.** Toda área que reaccione al jugador necesita esa referencia cableada en
+el Inspector. Explícito, y falla ruidosamente por `assert` cuando falta.
+
+**Estado.** aceptada
+
+---
+
+## 2026-09-21 — El HUD vive dentro de cada nivel
+
+**Contexto.** La spec 002 pone un contador de copias en pantalla. Alguien tiene que ser su
+dueño, y la elección se estira más allá de esta feature: B7 quiere un HUD que sobreviva a
+una transición, B10 quiere uno que siga vivo durante la pausa.
+
+**Decisión.** `hud.tscn` se agrega a un nivel como cualquier otro nodo y muere con él.
+Recibe por el Inspector una referencia al `CopySystem` de su propio nivel, se suscribe a
+`copies_changed` y escribe lo que le llega. Sin estado global, sin búsquedas, sin
+registro.
+
+**Alternativas descartadas.**
+- *Un HUD único que sobreviva a los cambios de escena.* Mejor para B7 y B10, y por eso
+  queda anotado acá en vez de descartado sin más. Pierde hoy porque tendría que enterarse
+  de qué nivel acaba de cargarse y recablearse en cada cambio —el problema que un dueño
+  único ya resolvió para los datos de nivel— y porque una segunda pieza de estado global
+  profundizaría la deuda que ya arrastra el interruptor de `InputReader`.
+- *Nodos sueltos copiados en cada nivel.* Doce niveles significa cambiar la tipografía en
+  doce lugares.
+
+**Consecuencias.** Cada nivel tiene que cablear su propio HUD, y un nivel que se olvide
+falla ruidosamente por `assert`. El HUD se reconstruye en cada cambio de nivel, lo que se
+va a ver como un parpadeo cuando B7 agregue transiciones — eso, o que B10 necesite el HUD
+vivo durante la pausa, es el disparador para revisar esta decisión.
+
+**Estado.** aceptada
