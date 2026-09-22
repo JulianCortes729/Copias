@@ -1,8 +1,8 @@
 # 002 — HUD de nivel
 
-**Estado:** borrador
+**Estado:** implementada
 **Ítem del backlog:** B6 — HUD: copias restantes
-**Última actualización:** 2026-09-21
+**Última actualización:** 2026-09-22
 
 ## Problema
 
@@ -76,6 +76,12 @@ cabe en este sistema — ver *Fuera de alcance*.
 - **R3.1** — El sistema de HUD DEBE mantener lo que muestra en una posición fija de la
   pantalla, independiente de dónde esté el jugador y de cómo se desplace la vista del
   nivel.
+  > **Cómo se verifica** (agregado el 2026-09-22, tras `/conforme`): **todavía no se
+  > verificó.** Lo garantiza la construcción —el HUD es un `CanvasLayer`, y una `Camera2D`
+  > no afecta su contenido— pero no una prueba: mientras no exista cámara (B9) no hay una
+  > vista que se desplace, así que no se puede observar que el HUD no la siga. El criterio
+  > es correcto; lo que falta es poder comprobarlo. **Se verifica en B9**: poner la
+  > `GameCamera`, moverla por el nivel y confirmar que el contador se queda quieto.
 - **R3.2** — MIENTRAS la ventana mide 1152 × 648 píxeles o más en ambos lados, CUANDO la
   ventana cambia de tamaño o de proporción, el sistema de HUD DEBE seguir mostrando
   íntegro todo lo que muestra.

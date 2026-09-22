@@ -21,7 +21,11 @@ Piezas nuevas, las dos del lado de **presentación**:
 | Pieza | Responsabilidad | Lado |
 |---|---|---|
 | `src/ui/hud.gd` (`class_name LevelHud`) | Suscribirse al contador y escribirlo. Nada más | Presentación |
-| `src/ui/hud.tscn` | `CanvasLayer` → `MarginContainer` → `Label`. Posición, márgenes y tipografía se ajustan acá, no en código | Presentación |
+| `src/ui/level_hud.tscn` | `CanvasLayer` → `MarginContainer` → `Label`. Posición, márgenes y tipografía se ajustan acá, no en código | Presentación |
+
+> **Corregido el 2026-09-22, tras `/conforme`:** este plan decía `hud.tscn`. El archivo se
+> renombró a `level_hud.tscn` durante T4, para que no fuera el único nombre en mayúsculas
+> del repo. El plan quedó viejo, no equivocado — se corrige el documento, no el código.
 
 Piezas que se tocan: **ninguna**. `CopySystem` ya emite `copies_changed` al colocar,
 deshacer, borrar todo y en `setup()`, que es lo que R1.2, R1.3 y R1.4 necesitan. Este plan
