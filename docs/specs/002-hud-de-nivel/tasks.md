@@ -5,7 +5,7 @@
 | # | Tarea | Requisitos | Depende de | Estado |
 |---|---|---|---|---|
 | T1 | Confirmar cuándo se resuelve una referencia del Inspector | R1.3 | — | ☑ 2026-09-22 |
-| T2 | El contador dice la verdad siempre | R1.1, R1.2, R1.3, R1.4, R1.5, R4.1 | T1 | ☐ |
+| T2 | El contador dice la verdad siempre | R1.1, R1.2, R1.3, R1.4, R1.5, R4.1 | T1 | ☑ 2026-09-22 |
 | T3 | La ubicación aguanta la ventana | R3.1, R3.2 | T2 | ☐ |
 | T4 | Afinar el formato mirándolo | R1.1 | T3 | ☐ |
 
@@ -62,6 +62,12 @@ sin que haya que hacer nada más.
 | Reiniciar con **R** tras gastar copias | vuelve a `3` | R1.4 |
 | Completar el nivel | el contador sigue en pantalla con su valor | R1.1 |
 | Vaciar `Copy System` en el Inspector y correr | falla con un mensaje que nombra qué falta | R4.1 |
+
+**Resultado — 2026-09-22:** ✅ Los ocho gestos pasan, con el HUD puesto **último** en el
+árbol de `level_01` a propósito. Eso confirma de paso un `⚠️API` que no estaba en el plan:
+pedir un hijo con `$` dentro de `_enter_tree()` funciona. Apareció escribiendo el script —
+D3 resolvía el momento de la suscripción, pero no el de la etiqueta, que es otro problema
+y con `@onready` habría reventado en esta misma posición del árbol.
 
 ## T3 — La ubicación aguanta la ventana
 

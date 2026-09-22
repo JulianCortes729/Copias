@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://g8naatvesc0u"]
 
 [ext_resource type="PackedScene" uid="uid://1ti37ijk0yyr" path="res://src/player/player.tscn" id="1_gv33s"]
-[ext_resource type="Script" uid="uid://cqnxwxnl8fgs7" path="res://src/debug/export_timing_probe.gd" id="1_p1npw"]
 [ext_resource type="Script" uid="uid://dm4dpcampp5i" path="res://src/copy/copy_system.gd" id="2_0nnfd"]
 [ext_resource type="Script" uid="uid://b4v3t4dm8rbxf" path="res://src/levels/level_rules.gd" id="3_07edn"]
 [ext_resource type="PackedScene" uid="uid://dnntbtib5bjj3" path="res://src/copy/player_copy.tscn" id="3_yqmen"]
 [ext_resource type="Resource" uid="uid://wau8qtst01ls" path="res://src/levels/level_01_data.tres" id="5_p1npw"]
+[ext_resource type="PackedScene" uid="uid://bccx3mt84d2m0" path="res://src/ui/LevelHud.tscn" id="6_p1npw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
 size = Vector2(420, 40)
@@ -26,10 +26,6 @@ size = Vector2(48, 48)
 size = Vector2(1600, 60)
 
 [node name="Level01" type="Node2D" unique_id=907346993]
-
-[node name="ExportProbe" type="Node" parent="." unique_id=92046160 node_paths=PackedStringArray("subject")]
-script = ExtResource("1_p1npw")
-subject = NodePath("../CopySystem")
 
 [node name="FloorLeft" type="StaticBody2D" parent="." unique_id=816015208]
 position = Vector2(210, 580)
@@ -87,3 +83,6 @@ death_zones = [NodePath("../DeathZone")]
 copy_system = NodePath("../CopySystem")
 level_data = ExtResource("5_p1npw")
 metadata/_custom_type_script = "uid://b4v3t4dm8rbxf"
+
+[node name="LevelHud" parent="." unique_id=1785708099 node_paths=PackedStringArray("copy_system") instance=ExtResource("6_p1npw")]
+copy_system = NodePath("../CopySystem")
