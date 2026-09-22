@@ -4,7 +4,7 @@
 
 | # | Tarea | Requisitos | Depende de | Estado |
 |---|---|---|---|---|
-| T1 | Confirmar cuándo se resuelve una referencia del Inspector | R1.3 | — | ☐ |
+| T1 | Confirmar cuándo se resuelve una referencia del Inspector | R1.3 | — | ☑ 2026-09-22 |
 | T2 | El contador dice la verdad siempre | R1.1, R1.2, R1.3, R1.4, R1.5, R4.1 | T1 | ☐ |
 | T3 | La ubicación aguanta la ventana | R3.1, R3.2 | T2 | ☐ |
 | T4 | Afinar el formato mirándolo | R1.1 | T3 | ☐ |
@@ -26,6 +26,17 @@ en el Inspector, imprime en el panel Output si esa referencia es `null` o no, en
 referencia ya resuelta, D3 queda en pie. Si reporta `null`, se toma el plan B que el plan
 ya declara —conectar en `_ready()` y pedir el valor actual con `call_deferred`— y se anota
 la corrección en `plan.md`, porque una decisión que se cae se corrige, no se borra.
+
+**Resultado — 2026-09-22:** ✅ D3 se sostiene. Con el probe puesto primero en el árbol:
+
+```
+[ExportProbe] _enter_tree -> resuelta: CopySystem | ya en el árbol: false
+[ExportProbe] _ready      -> resuelta: CopySystem | ya en el árbol: true
+```
+
+La referencia está resuelta, pero el nodo apuntado todavía no entró al árbol. Consecuencia
+para T2, anotada en D3: en `_enter_tree()` el HUD **solo se suscribe, nunca lee**. El probe
+se borró — la respuesta vive en el plan, que es el artefacto durable; el instrumento no.
 
 ## T2 — El contador dice la verdad siempre
 

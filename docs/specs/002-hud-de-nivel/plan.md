@@ -103,10 +103,15 @@ revés. Es la regla de capas del GDD y la nota que `/clarifica` sacó de los req
 - **Elegida:** (a). `_enter_tree()` se propaga de arriba hacia abajo antes de que corra
   ningún `_ready()`, así que la conexión existe antes que cualquier emisión, sin importar
   el orden entre hermanos. Se desconecta en `_exit_tree()`, como exige `godot-estandares`.
-- **⚠️API — a confirmar antes de nada:** que un `@export var copy_system: CopySystem` ya
-  esté resuelto cuando corre `_enter_tree()`. Es lo único de este plan que no se puede
-  afirmar sin probarlo, y si resulta que no, la opción (a) no existe y se cae a (b). Por
-  eso es la primera tarea.
+- **✅ Verificado en T1, 2026-09-22.** Un `@export var copy_system: CopySystem` **ya está
+  resuelto** cuando corre `_enter_tree()`, incluso con el nodo puesto primero en el árbol,
+  que es el peor caso. Era lo único de este plan que no se podía afirmar sin probarlo.
+  > **El matiz que apareció midiendo:** en ese momento el nodo apuntado todavía **no está
+  > en el árbol** (`is_inside_tree()` devuelve `false`; recién en `_ready()` da `true`).
+  > Para `connect()` alcanza, porque suscribirse necesita el objeto y no su posición en el
+  > árbol. Pero fija un límite: en `_enter_tree()` el HUD **solo puede suscribirse, nunca
+  > leer**. Pedirle `remaining()` ahí fallaría, porque `setup()` no corrió y `level_data`
+  > todavía es `null`.
 - **Descartada:** (c) es la más barata y la más frágil: un nivel armado con los nodos en
   otro orden rompe R1.3 sin ningún error visible.
 - **Apartarse de la convención del proyecto es deliberado.** `godot-estandares` dice
