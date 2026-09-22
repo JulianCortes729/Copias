@@ -6,8 +6,8 @@
 |---|---|---|---|---|
 | T1 | Confirmar cuándo se resuelve una referencia del Inspector | R1.3 | — | ☑ 2026-09-22 |
 | T2 | El contador dice la verdad siempre | R1.1, R1.2, R1.3, R1.4, R1.5, R4.1 | T1 | ☑ 2026-09-22 |
-| T3 | La ubicación aguanta la ventana | R3.1, R3.2 | T2 | ☐ |
-| T4 | Afinar el formato mirándolo | R1.1 | T3 | ☐ |
+| T3 | La ubicación aguanta la ventana | R3.1, R3.2 | T2 | ☑ 2026-09-22 |
+| T4 | Afinar el formato mirándolo | R1.1 | T3 | ☑ 2026-09-22 |
 
 ## T1 — Confirmar cuándo se resuelve una referencia del Inspector
 
@@ -86,6 +86,11 @@ que se desplace, así que no hay forma de observar que el HUD no la sigue. Lo ga
 `CanvasLayer` de D4, no una prueba. Se anota en la spec como pendiente de B9, igual que se
 hizo con R1.6 de la spec 001.
 
+**Resultado — 2026-09-22:** ✅ R3.2 verificado con los cuatro gestos de resize: el
+contador se queda anclado arriba a la izquierda, no se corta ni se estira, y sigue
+actualizándose con la ventana grande. **R3.1 sigue sin verificar** — deuda de B9, no
+criterio cumplido.
+
 ## T4 — Afinar el formato mirándolo
 
 **Requisitos:** R1.1
@@ -104,6 +109,16 @@ método dice que el valor se encuentra probando y recién después se fija.
 
 Cierra también la divergencia que anotó el plan: si `LevelHud` se acepta como nombre, el
 diagrama de sistemas del `GDD.md` se actualiza en el mismo commit.
+
+**Resultado — 2026-09-22:**
+
+- Ganó **`"Copias: %d"`**. Un `3` desnudo no dice de qué es. Quedó como default del script
+  y no como override de la escena, para que el valor viva en un solo lugar.
+- **`LevelHud` se acepta** como nombre. El diagrama del `GDD.md` y la lista de la capa de
+  presentación se actualizaron en este mismo commit.
+- **`Margin Top` pasó de 24 a 0**, decidido mirándolo. Es exactamente la clase de valor
+  que el método manda no especificar de antemano: no había forma de saber que quedaba
+  mejor pegado al borde sin verlo en pantalla.
 
 ## Trazabilidad
 

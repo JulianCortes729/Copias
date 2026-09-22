@@ -32,7 +32,7 @@ flowchart TD
 	subgraph Presentation["Presentation — lo que se ve y se oye"]
 		PlayerView[PlayerView]
 		CopyView[CopyView]
-		HUD[HUD]
+		HUD[LevelHud]
 		Menus[Menus]
 		GameCamera[GameCamera]
 	end
@@ -93,7 +93,7 @@ flowchart TD
   Profiler lo justifica** (ver riesgos).
 
 **Presentation** — lee estado de Core y lo dibuja. Nunca decide nada:
-`PlayerView`, `CopyView`, `HUD`, `Menus`, `GameCamera`.
+`PlayerView`, `CopyView`, `LevelHud`, `Menus`, `GameCamera`.
 
 **Por qué tres capas.** Cuando se reemplacen los assets placeholder por arte propio,
 solo se toca Presentation. Sin esta separación, cambiar un sprite obliga a abrir el
@@ -126,7 +126,10 @@ Los sistemas terminados se marcan acá.
 
 ### P2 — sin esto no es un producto
 
-- [ ] **B6** — HUD: copias restantes. ★ — dep: B2
+- [x] **B6** — HUD: copias restantes. ★ — dep: B2 — spec `002-hud-de-nivel` ✅ 2026-09-22
+  📋 Se quedó en el alcance del backlog. El aviso de nivel completado llegó a estar en la
+  spec y `/clarifica` lo retiró: no se puede verificar mientras completar un nivel cambie
+  de escena en el acto, así que es deuda de B7 junto con la señal `completed`.
 - [ ] **B7** — `SceneLoader`: carga asíncrona y transiciones. ★ — dep: B4
   📋 Reducido: el encadenado nivel → nivel se hace en B3. Acá queda lo que sobra —
   que la carga no congele el juego y que la transición no sea un corte seco.

@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://b4v3t4dm8rbxf" path="res://src/levels/level_rules.gd" id="3_07edn"]
 [ext_resource type="PackedScene" uid="uid://dnntbtib5bjj3" path="res://src/copy/player_copy.tscn" id="3_yqmen"]
 [ext_resource type="Resource" uid="uid://wau8qtst01ls" path="res://src/levels/level_01_data.tres" id="5_p1npw"]
-[ext_resource type="PackedScene" uid="uid://bccx3mt84d2m0" path="res://src/ui/LevelHud.tscn" id="6_p1npw"]
+[ext_resource type="PackedScene" uid="uid://bccx3mt84d2m0" path="res://src/ui/level_hud.tscn" id="6_p1npw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
 size = Vector2(420, 40)

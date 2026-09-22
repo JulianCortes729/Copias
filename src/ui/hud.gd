@@ -16,9 +16,11 @@ extends CanvasLayer
 @export var copy_system: CopySystem
 
 ## Cómo se escribe el número en pantalla. R1.1 pide mostrar cuántas copias quedan y no
-## fija el texto, así que el formato se afina en el Inspector sin tocar este script — es
-## lo que decide T4, probándolo.
-@export var label_format: String = "%d"
+## fija el texto.
+## 📖 El valor salió de mirarlo, no de razonarlo (T4, 2026-09-22): un "3" desnudo no dice
+## de qué es. Es el default del script y no un override de la escena a propósito — así
+## vive en un solo lugar y un HUD nuevo ya nace bien.
+@export var label_format: String = "Copias: %d"
 
 # 📖 Se toma en _enter_tree() y no con @onready. @onready corre en _ready(), y para
 # entonces el primer aviso ya puede haber llegado: con este nodo después de LevelRules en
