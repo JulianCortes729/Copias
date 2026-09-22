@@ -244,3 +244,72 @@ va a ver como un parpadeo cuando B7 agregue transiciones — eso, o que B10 nece
 vivo durante la pausa, es el disparador para revisar esta decisión.
 
 **Estado.** aceptada
+
+---
+
+## 2026-09-22 — El proyecto se documenta en español; solo los identificadores van en inglés
+
+**Contexto.** La regla anterior partía el repo por destinatario: español para lo interno
+(GDD, specs, conversación) e inglés para lo que sale del repo (README, devlog, este
+archivo, mensajes de commit, comentarios del código). Funcionaba en el papel y fallaba en
+el uso: al autor le costaba leer su propio repo, y un repo que no se lee cómodo no se
+mantiene.
+
+**Decisión.** Todo en español —documentación, comentarios, docstrings, mensajes de
+commit, descripción de GitHub— con una sola excepción: los identificadores del código.
+Clases, métodos, variables, señales y nombres de archivo de código siguen en inglés.
+
+**Alternativas descartadas.**
+- *Mantener la regla anterior.* Es la correcta si el lector principal es un tercero. Acá
+  el lector principal es quien lo escribe, todos los días.
+- *Traducir también los identificadores.* Media línea de GDScript ya es API del motor
+  (`CharacterBody2D`, `move_and_slide`, `_physics_process`). Un `MotorJugador` llamando a
+  `move_and_slide()` se lee peor que cualquiera de los dos idiomas puros.
+- *Reescribir el historial de commits para traducir los 24 anteriores.* Cambia todos los
+  hashes y obliga a un push forzado. El historial pasado no es lo que se lee a diario.
+  Quedan en inglés y el corte está documentado acá.
+
+**Consecuencias.** El `README.md` —el único documento cuyo lector no es el autor— va a
+salir en español, así que tiene que abrir aclarándolo. Los comentarios quedan en un idioma
+y los nombres que describen en otro; es una costura visible y aceptada. La regla vive en
+la sección Idioma del `CLAUDE.md`, y los comandos que la necesitan la **referencian** en
+vez de copiarla: la primera versión de este cambio dejó ocho archivos mandando lo
+contrario.
+
+**Estado.** aceptada
+
+---
+
+## 2026-09-22 — Suscribirse en `_enter_tree()` cuando el emisor dispara durante un `_ready()` ajeno
+
+**Contexto.** El HUD (spec 002, R1.3) tiene que mostrar el total de copias apenas arranca
+el nivel. Ese valor se emite una sola vez, dentro de `CopySystem.setup()`, que llama
+`LevelRules` en su `_ready()`. Un receptor que se conecte en su propio `_ready()` llega a
+tiempo o no según dónde esté en el árbol, y cuando no llega no pasa nada visible: el valor
+inicial simplemente falta.
+
+**Decisión.** Un receptor cuya suscripción deba preceder a una emisión que ocurre durante
+los `_ready()` ajenos se conecta en `_enter_tree()`, y se desconecta en `_exit_tree()`.
+Verificado en el proyecto: una referencia `@export` a un nodo **ya está resuelta** en
+`_enter_tree()`, incluso con el receptor primero en el árbol. El nodo apuntado todavía
+**no está en el árbol** en ese momento, lo que alcanza para `connect()` pero no para
+leerle estado.
+
+**Alternativas descartadas.**
+- *Conectar en `_ready()` y pedir el valor actual con `call_deferred`.* Respeta la
+  convención del proyecto y cuesta un frame con el dato vacío. Perdió porque agrega un
+  segundo camino de inicialización en paralelo al de la señal: dos formas de que el dato
+  llegue, y solo una ejercitada en cada arranque.
+- *Ordenar los nodos en el árbol para que el receptor vaya primero.* Lo más barato y lo
+  más frágil: hace que un requisito dependa del orden en que alguien arrastró nodos, sin
+  ningún error cuando se rompe.
+
+**Consecuencias.** Se aparta de la convención de `godot-estandares`, que reserva
+`_enter_tree()` para registro en sistemas globales; donde se use, va comentado con el
+motivo. Fija además un límite que hay que respetar: en `_enter_tree()` **solo se suscribe,
+nunca se lee**. Y un corolario que apareció implementando: resolver el momento de la
+suscripción no resuelve el de las referencias que el handler va a tocar — un `@onready`
+adentro del mismo nodo seguiría llegando tarde. Los futuros consumidores de señales de
+nivel (B12, B14) enfrentan lo mismo.
+
+**Estado.** aceptada
