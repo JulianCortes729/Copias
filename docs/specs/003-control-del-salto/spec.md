@@ -1,12 +1,13 @@
 # 003 — Control del salto
 
-**Estado:** borrador
-**Ítem del backlog:** B8 — Game feel: coyote time, input buffering, jump cut
+**Estado:** aprobada — P2 se completa después del prototipo
+**Ítem del backlog:** B8 — Game feel: coyote time, input buffering, jump cut (el jump cut
+se descartó el 2026-09-23 — ver *Fuera de alcance*)
 **Última actualización:** 2026-09-23
 
 > **Esta spec se completa en dos tiempos, a propósito.** El comportamiento se decide
-> ahora; los tres valores de feel (ventana de gracia, ventana de anticipación, salto
-> mínimo) se encuentran jugando un prototipo y recién ahí se escriben acá. Hasta
+> ahora; los tres valores de feel (ventana de gracia, ventana de anticipación y ventana
+> de simultaneidad) se encuentran jugando un prototipo y recién ahí se escriben acá. Hasta
 > entonces los requisitos que los usan los nombran y remiten a *Preguntas abiertas*.
 > Inventarlos ahora sería defender un número por haberlo escrito.
 
@@ -14,9 +15,7 @@
 
 Hoy el salto castiga al jugador por errores que no percibe como suyos. Si aprieta salto
 un instante después de salir de un borde, no salta y cae al pozo. Si lo aprieta un
-instante antes de tocar el piso, la pulsación se pierde. Y el salto mide siempre lo
-mismo: no hay forma de dar un salto corto para apoyarse en un escalón bajo sin pasarse.
-En un juego de puzzles eso es peor que en uno de acción: el jugador sabía la solución y
+instante antes de tocar el piso, la pulsación se pierde. En un juego de puzzles eso es peor que en uno de acción: el jugador sabía la solución y
 la perdió por un problema de ejecución.
 
 Además, B5 dejó una decisión sin tomar: tomar carrera antes de saltar no cambia nada,
@@ -27,7 +26,8 @@ así que ningún obstáculo puede pedirla. Se decidió dejarlo así — ver R5.
 - Saltar sigue siendo posible durante un instante después de salir caminando de un borde.
 - Una pulsación de salto hecha un instante antes de tocar el piso no se pierde: se salta
   al tocarlo.
-- La altura del salto depende de cuánto tiempo se mantiene apretado el botón.
+- El salto mide siempre lo mismo, se suelte el botón cuando se suelte. Decidido el
+  2026-09-23.
 - Tomar carrera no cambia hasta dónde llega un salto. Decidido el 2026-09-23.
 - Saltar y colocar una copia a la vez hace las dos cosas.
 - Nada de lo anterior rompe el nivel 1: sigue pidiendo exactamente 3 copias.
@@ -37,6 +37,7 @@ así que ningún obstáculo puede pedirla. Se decidió dejarlo así — ver R5.
 | Qué | Por qué queda afuera |
 |---|---|
 | Cambiar la altura máxima del salto, la gravedad o la velocidad de carrera | Ahora no. El nivel 1 y la aritmética de copias del GDD (32 / ~115 px por copia) salen de esos números medidos en B5. Cambiarlos es rehacer esa medición y ese nivel, y B8 existe justamente para congelar el salto antes de B11 |
+| Salto de altura variable (soltar el botón antes da un salto más corto) | Nunca. Decidido el 2026-09-23, y era parte del ítem B8 original. El jugador no tiene que mantener nada apretado: la altura del salto es una constante del puzzle, igual que la altura de una copia. Si dependiera del botón, lo que vale una copia colocada en vuelo (~115 px) dependería de la ejecución, contra la decisión de R5 |
 | Caída más rápida que la subida, flotación en el punto más alto | Ahora no. Si el prototipo muestra que hacen falta, entran como **ítem nuevo del backlog**, con su propia spec y su propia medición — nunca como ampliación de esta |
 | Que la ventana de gracia amplíe el alcance con el que se diseñan los niveles | Nunca. Decidido el 2026-09-23: los niveles se diseñan con el alcance medido **sin** gracia (R5.1). La gracia es margen de error del jugador, no una distancia que un nivel pueda exigir: un pozo que solo se cruza usándola castiga justo al jugador que no sabe que existe |
 | Anticipación para colocar, deshacer o borrar copias | Nunca, mientras la colocación siga funcionando en cualquier estado. Anticipar una acción solo tiene sentido si la acción espera a un estado que todavía no llegó; colocar no espera nada, y una colocación bloqueada que se dispara sola medio segundo después sería una sorpresa, no una ayuda |
@@ -72,27 +73,25 @@ así que ningún obstáculo puede pedirla. Se decidió dejarlo así — ver R5.
   anticipación al tocar el piso, ENTONCES el sistema de salto DEBE descartarla.
 - **R2.3** — El sistema de salto DEBE producir como máximo un salto por cada pulsación del
   botón, sin importar por cuántas ventanas haya pasado esa pulsación.
+  > **Aclarado el 2026-09-23, con P3:** cuando una colocación interrumpe un salto ya
+  > arrancado y R6.1 lo ejecuta desde la copia, es **el mismo salto trasladado**, no un
+  > segundo salto. El salto interrumpido no llega a completarse: colocar anula la subida.
 
-### R3 — Altura según cuánto se mantiene el botón
+### R3 — Altura del salto
 
-- **R3.1** — CUANDO el jugador suelta salto a mitad de la subida de un salto, el sistema
-  de salto DEBE alcanzar una altura estrictamente mayor que la mínima (R3.2) y
-  estrictamente menor que la máxima (R3.4).
-  > **Por qué cambió** (2026-09-23, tras `/clarifica`): decía "terminar esa subida más
-  > abajo de lo que la habría terminado manteniéndolo", sin cota. Cerca del punto más alto
-  > la diferencia es menor a un píxel, y el instrumento redondea a píxeles enteros: una
-  > implementación correcta fallaba la prueba. Fijar el momento de soltar en la mitad de
-  > la subida la vuelve decidible.
-- **R3.2** — CUANDO el jugador mantiene salto durante un solo tick, el sistema de salto
-  DEBE alcanzar la altura de salto mínima (❓ P2).
-  > **Por qué cambió** (2026-09-23, tras `/clarifica`): decía "presiona y suelta lo más
-  > rápido posible". Eso depende de la mano de quien prueba: nadie suelta un botón en un
-  > tick, así que dos personas medían mínimos distintos con el mismo código.
-- **R3.3** — SI el jugador suelta salto mientras cae, ENTONCES el sistema de salto DEBE
-  dejar la caída sin alterar.
-- **R3.4** — MIENTRAS el jugador mantiene salto durante toda la subida, el sistema de
-  salto DEBE alcanzar la misma altura que medía el salto antes de esta spec, con el mismo
-  instrumento y en las mismas condiciones.
+> **R3.1, R3.2 y R3.3 retirados el 2026-09-23**, tras `/clarifica`. No se borran: los IDs
+> quedan quemados y el hueco es información. Describían un salto de altura variable
+> —soltar antes, subir menos— y se decidió que el salto mida siempre lo mismo. Ver
+> *Fuera de alcance*. Los tres ya se habían reescrito una vez en la misma pasada para
+> volverlos verificables; el trabajo no se pierde, queda en el historial.
+
+- **R3.4** — El sistema de salto DEBE alcanzar en todo salto la misma altura que medía el
+  salto antes de esta spec, sin importar cuánto tiempo se mantenga apretado el botón,
+  medida con el mismo instrumento y en las mismas condiciones.
+  > **Por qué cambió** (2026-09-23, tras `/clarifica`): empezaba con "MIENTRAS el jugador
+  > mantiene salto durante toda la subida", que era el caso máximo de un salto variable.
+  > Sin salto variable, la condición sobra y el requisito pasa de proteger el máximo a
+  > proteger la única altura que existe.
 
 ### R4 — Lo que no se puede romper
 
@@ -129,41 +128,62 @@ así que ningún obstáculo puede pedirla. Se decidió dejarlo así — ver R5.
 
 ### R6 — Salto y copias a la vez
 
-- **R6.1** — CUANDO el jugador presiona salto y colocar en el mismo tick estando en el
-  piso, y la colocación tiene lugar, el sistema de salto DEBE ejecutar el salto desde
-  encima de la copia recién colocada.
+- **R6.1** — CUANDO el jugador presiona salto y colocar, en cualquier orden, con una
+  separación no mayor que la ventana de simultaneidad (❓ P2), límite incluido, y la
+  colocación tiene lugar, el sistema de salto DEBE ejecutar el salto desde encima de la
+  copia recién colocada.
   > Agregado el 2026-09-23, tras `/clarifica` (P6). Hoy el resultado depende del orden
   > en que corren los sistemas, que no está fijado por nada: leyendo el código, en uno
   > de los dos órdenes el salto se pierde (⚠️ sin reproducir todavía).
+  >
+  > **Por qué cambió** (2026-09-23, P7): decía "estando en el piso". En el aire, en el
+  > mismo tick, R6.1 y R6.2 aplicaban a la vez y se contradecían. Gana R6.1 en los dos
+  > casos: si no, el jugador siente que el salto se traba cada vez que coloca una copia
+  > y quiere salir rápido de ella.
+  >
+  > **Por qué cambió otra vez** (2026-09-23, P3 reabierta): "en el mismo tick" son
+  > 16,7 ms, y dos teclas apretadas "a la vez" por una persona casi nunca caen en el
+  > mismo tick. El requisito cubría una coincidencia, no el gesto. La ventana de
+  > simultaneidad es lo que convierte "a la vez" en algo que una persona puede hacer.
+  > "En cualquier orden" hace que el resultado no dependa de qué tecla cayó primero.
 - **R6.2** — SI el jugador queda parado sobre una copia colocada en el aire, ENTONCES el
-  sistema de salto DEBE descartar cualquier pulsación anticipada pendiente.
+  sistema de salto DEBE descartar cualquier pulsación anticipada más vieja que la
+  ventana de simultaneidad.
   > Agregado el 2026-09-23, tras `/clarifica` (P3). Colocar es "quiero pararme acá": un
   > salto apretado de más antes de decidirlo no puede lanzar al jugador desde la copia.
+  >
+  > **Por qué cambió** (2026-09-23, P3 reabierta): decía "hecha en un tick anterior a la
+  > colocación". Se respondió P3 con una ventana propia: dentro de ella manda R6.1 y
+  > fuera, este. Así ni el salto se traba ni la copia lanza al jugador sin que lo pida.
 
 ## Casos borde
 
 - **El jugador sale caminando del borde de una copia.** Una copia es piso: R1.1 aplica
   igual que en cualquier borde.
-- **El jugador deshace la copia sobre la que está parado.** Deja el piso sin saltar, pero
-  no caminando. ❓ **Pendiente — P4.**
-- **El jugador anticipa un salto y en ese instante coloca una copia en el aire.** Queda
-  parado sobre la copia y no salta — R6.2.
-- **El jugador anticipa un salto y suelta el botón antes de tocar el piso.** ¿Sale un
-  salto completo o el mínimo? ❓ **Pendiente — P5.**
+- **El jugador deshace la copia sobre la que está parado.** Deja el piso sin saltar, así
+  que tiene ventana de gracia — R1.1. Decidido el 2026-09-23 (P4): R1.1 habla de dejar el
+  piso sin saltar, no de cómo se deja, y no hay motivo de diseño para distinguirlo.
+- **El jugador anticipa un salto y, fuera de la ventana de simultaneidad, coloca una
+  copia en el aire.** Queda parado sobre la copia y no salta — R6.2.
+- **El jugador anticipa un salto y suelta el botón antes de tocar el piso.** Salto
+  completo: el salto no depende del botón — R3.4.
 - **El jugador presiona salto y colocar en el mismo tick, parado en el piso.** Se sube a
   la copia y salta desde ahí — R6.1.
 - **Lo mismo, pero la colocación está bloqueada** (no hay lugar arriba). No hay copia de
   la que saltar: R6.1 no aplica y el salto sale desde el piso, como R4.1.
-- **El jugador presiona salto y colocar en el mismo tick, en el aire y sin ventana de
-  gracia.** ❓ **Pendiente — P7.**
+- **El jugador presiona salto y colocar en el mismo tick, en el aire.** Se sube a la
+  copia y salta desde ahí — R6.1, igual que en el piso.
+- **El jugador salta desde el piso y coloca una copia dentro de la ventana de
+  simultaneidad.** El salto ya arrancó y colocar lo interrumpe. Se sube a la copia y
+  salta desde ahí — R6.1. Cuenta como un solo salto — R2.3.
+- **El jugador usa la ventana de gracia para saltar y coloca dentro de la ventana de
+  simultaneidad.** Igual que el anterior: el salto por gracia se traslada a la copia.
 - **El jugador mantiene salto apretado al aterrizar, sin volver a pulsar.** No salta.
   Mantener no es pulsar: R2.1 habla de una pulsación, y R2.3 impide reusarla.
 - **El jugador pulsa dos veces dentro de la ventana de anticipación.** Un solo salto —
   R2.3.
-- **El jugador usa la ventana de gracia y después suelta el botón.** El corte de altura
-  aplica igual: R3 habla de cualquier salto, no solo del que sale del piso.
-- **El jugador golpea un techo durante la subida y después suelta.** Ya no está subiendo:
-  R3.3, la caída no se toca.
+- **El jugador suelta el botón en cualquier momento del salto** —subiendo, cayendo,
+  después de usar la ventana de gracia—. Sin efecto — R3.4.
 - **El nivel arranca con el jugador en el aire** (el punto de inicio puede estar arriba
   del piso). No hay ventana de gracia: nunca dejó el piso. R1.1 y R4.3.
 - **El jugador anticipa un salto, toca la meta en el aire y aterriza con el nivel
@@ -190,7 +210,7 @@ La spec describe el destino; esto es lo que ya existe:
   cubre 139 px de distancia y saltar corriendo 147 (medido en B5/H1, alcance horizontal).
   R5.1 lo congela tal cual.
 - Colocar una copia deja al jugador parado encima, en el piso y en el aire (`DECISIONES.md`,
-  2026-09-17). Es la raíz de R6 y de P4.
+  2026-09-17). Es la raíz de R6 y del caso de deshacer la copia bajo los pies.
 - El reinicio ya anula la velocidad del jugador (spec 001, R2.3) y el congelamiento de
   input ya existe (spec 001, R1.2). R4.3 y R4.4 agregan estado nuevo que esos dos tienen
   que cubrir.
@@ -199,23 +219,20 @@ La spec describe el destino; esto es lo que ya existe:
 
 ## Preguntas abiertas
 
-Respondidas el 2026-09-23 en `/clarifica`: P1 (R5), P3 (R6.2), P6 (R6.1), la lectura de
-"idéntico" (R1.1) y el alcance de diseño (*Fuera de alcance*). Los IDs no se reusan.
+Respondidas el 2026-09-23 en `/clarifica`: P1 (R5), P3, P6 y P7 (R6.1 y R6.2), P4 y la
+lectura de "idéntico" (R1.1), y el alcance de diseño (*Fuera de alcance*). P5 dejó de
+existir al descartarse el salto variable. Los IDs no se reusan.
 
-- ❓ **P2 — Los tres valores de feel:** duración de la ventana de gracia, duración de la
-  ventana de anticipación y altura del salto mínimo. Se encuentran en un prototipo con
+Queda abierta **solo P2**, y por diseño: son valores de feel, y se cierran jugando.
+
+- ❓ **P2 — Los tres valores de feel:** duración de la ventana de gracia, de la ventana
+  de anticipación y de la ventana de simultaneidad. Se encuentran en un prototipo con
   los valores afinables sin tocar código, se miden con el instrumento de B5 y recién ahí
   se escriben acá, cada uno en su requisito. Ninguno se completa antes.
-- ❓ **P4 — Deshacer la copia bajo los pies, ¿da ventana de gracia?** Con R1.1 escrita tal
-  cual, sí: el jugador dejó el piso sin saltar. Si se quiere que no, R1.1 tiene que decir
-  "caminando fuera del piso", y la diferencia tiene que tener un motivo de diseño.
-- ❓ **P5 — Un salto anticipado con el botón ya soltado al tocar el piso: ¿completo o
-  mínimo?** La primera respeta la intención de "saltar"; la segunda respeta lo que el
-  botón dice en ese momento.
-- ❓ **P7 — Salto y colocar en el mismo tick, en el aire.** Abierta por las respuestas a
-  P3 y P6, que tiran para lados distintos: si cuenta como "a la vez", R6.1 dice que salta
-  desde la copia; si cuenta como una pulsación previa a la colocación, R6.2 dice que no.
-  Hay que elegir cuál de las dos reglas gana cuando coinciden en el mismo tick.
+  **Una relación ya está fijada, aunque los números no:** la ventana de simultaneidad
+  tiene que ser más corta que la de anticipación. Si fuera igual o más larga, R6.2 no
+  aplicaría nunca y toda pulsación anticipada lanzaría al jugador desde la copia — la
+  opción (a) de P3, que se descartó.
 
 ## Notas para el plan
 
@@ -225,10 +242,9 @@ levantar:
 - **La altura de R3.4 se mide antes de tocar el código.** Sin ese número, R3.4 no tiene
   contra qué compararse. R5.1 ya tiene los suyos (139 / 147 px), pero conviene volver a
   medirlos en el mismo momento, con las mismas condiciones.
-- **"La mitad de la subida" de R3.1** es la mitad del tiempo que tarda un salto mantenido
-  en llegar a su punto más alto, medido junto con R3.4.
-- **R3.1 y R3.2 se verifican con input simulado, no con la mano.** Soltar el botón en un
-  tick exacto no es algo que una persona pueda repetir.
+- **R3.4 se verifica con input simulado, no con la mano**: un salto con el botón
+  mantenido un solo tick y otro mantenido toda la subida tienen que medir lo mismo.
+  Soltar el botón en un tick exacto no es algo que una persona pueda repetir.
 - **R6.1 exige fijar el orden** entre el sistema de salto y el de copias dentro del tick.
   Hoy no lo fija nada.
 - **Dos decisiones de esta spec las tiene que respetar B11**: el control en el aire total
